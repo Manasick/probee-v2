@@ -57,6 +57,7 @@ alter table public.products
   add column warranty_unit text,
   add column delivery_type text,
   add column delivery_details text,
+  add column requires_customer_email boolean not null default false,
   add column customer_requirements jsonb not null default '[]'::jsonb,
   add column custom_attributes jsonb not null default '{}'::jsonb,
   add column seo_title text,
@@ -75,6 +76,10 @@ alter table public.products
     check (jsonb_typeof(customer_requirements) = 'array'),
   add constraint products_custom_attributes_object_check
     check (jsonb_typeof(custom_attributes) = 'object');
+
+alter table public.categories
+  add column seo_title text,
+  add column seo_description text;
 
 alter table public.product_plans
   add column duration integer,
@@ -126,6 +131,9 @@ alter table public.product_plans
 
 create index products_delivery_active_idx
   on public.products(delivery_type, is_active, is_published);
+
+create index categories_seo_lookup_idx
+  on public.categories(is_active, slug);
 
 create index product_plans_catalog_idx
   on public.product_plans(product_id, is_active, sort_order, price);
