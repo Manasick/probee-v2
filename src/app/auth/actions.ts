@@ -1,0 +1,295 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import type { AuthError } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
+import {
+  getEmailConfirmationUrl,
+  getPasswordRecoveryCallbackUrl,
+  safeNextPath,
+} from "@/lib/auth/urls";
+import { ensureProfile } from "@/lib/auth/server";
+
+export interface AuthActionState {
+  ok: boolean;
+  message: string;
+  code?: string;
+}
+
+export const INITIAL_AUTH_STATE: AuthActionState = {
+  ok: false,
+  message: "",
+};
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizedEmail(value: FormDataEntryValue | null): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function passwordError(password: string): string | null {
+  if (password.length < 8) {
+    return "Password must be at least 8 characters.";
+  }
+
+  if (password.length > 128) {
+    return "Password must be 128 characters or fewer.";
+  }
+
+  return null;
+}
+
+function getAuthErrorMessage(error: AuthError): string {
+  const message = error.message.toLowerCase();
+
+  if (
+    message.includes("invalid login") ||
+    message.includes("invalid credentials") ||
+    message.includes("email not confirmed")
+  ) {
+    return "Unable to sign in. Check your email, password, and account activation status.";
+  }
+
+  if (message.includes("rate limit") || message.includes("too many")) {
+    return "Too many authentication attempts. Please try again later.";
+  }
+
+  return "The authentication request could not be completed. Please try again.";
+}
+
+export async function signInAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = normalizedEmail(formData.get("email"));
+  const password = typeof formData.get("password") === "string"
+    ? String(formData.get("password"))
+    : "";
+  const next = safeNextPath(
+    typeof formData.get("next") === "string"
+      ? String(formData.get("next"))
+      : "/account",
+  );
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return {
+      ok: false,
+      message: "Enter a valid email address.",
+    };
+  }
+
+  if (!password) {
+    return {
+      ok: false,
+      message: "Enter your password.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error || !data.user) {
+    return {
+      ok: false,
+      message: error
+        ? getAuthErrorMessage(error)
+        : "Unable to sign in. Please try again.",
+    };
+  }
+
+  await ensureProfile(supabase, data.user.id);
+
+  const { data: isStaff } = await supabase.rpc("current_user_is_staff");
+
+  if (isStaff) {
+    redirect("/admin");
+  }
+
+  redirect(next === "/admin" ? "/account" : next);
+}
+
+export async function signUpAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = normalizedEmail(formData.get("email"));
+  const password = typeof formData.get("password") === "string"
+    ? String(formData.get("password"))
+    : "";
+  const confirmPassword =
+    typeof formData.get("confirmPassword") === "string"
+      ? String(formData.get("confirmPassword"))
+      : "";
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return {
+      ok: false,
+      message: "Enter a valid email address.",
+    };
+  }
+
+  const passwordValidation = passwordError(password);
+
+  if (passwordValidation) {
+    return {
+      ok: false,
+      message: passwordValidation,
+    };
+  }
+
+  if (password !== confirmPassword) {
+    return {
+      ok: false,
+      message: "Password confirmation does not match.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: getEmailConfirmationUrl("/account"),
+    },
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      message:
+        "We could not complete registration right now. Please try again later.",
+    };
+  }
+
+  if (data.session && data.user) {
+    await ensureProfile(supabase, data.user.id);
+    redirect("/account");
+  }
+
+  redirect("/login?registered=1");
+}
+
+export async function resendVerificationAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = normalizedEmail(formData.get("email"));
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return {
+      ok: false,
+      message: "Enter the email address you want to use for account activation.",
+    };
+  }
+
+  const supabase = await createClient();
+
+  // Intentionally return the same public response whether the email exists or not.
+  await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: getEmailConfirmationUrl("/account"),
+    },
+  });
+
+  return {
+    ok: true,
+    message:
+      "If an activation email can be sent for this address, it will arrive shortly. Please also check your spam folder.",
+  };
+}
+
+export async function forgotPasswordAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = normalizedEmail(formData.get("email"));
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return {
+      ok: false,
+      message: "Enter a valid email address.",
+    };
+  }
+
+  const supabase = await createClient();
+
+  // Always return a generic response to avoid exposing account existence.
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getPasswordRecoveryCallbackUrl(),
+  });
+
+  return {
+    ok: true,
+    message:
+      "If an account can receive a password reset email for this address, instructions will arrive shortly.",
+  };
+}
+
+export async function resetPasswordAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const password =
+    typeof formData.get("password") === "string"
+      ? String(formData.get("password"))
+      : "";
+  const confirmPassword =
+    typeof formData.get("confirmPassword") === "string"
+      ? String(formData.get("confirmPassword"))
+      : "";
+
+  const passwordValidation = passwordError(password);
+
+  if (passwordValidation) {
+    return {
+      ok: false,
+      message: passwordValidation,
+    };
+  }
+
+  if (password !== confirmPassword) {
+    return {
+      ok: false,
+      message: "Password confirmation does not match.",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      ok: false,
+      message:
+        "This password reset session is missing or expired. Request a new password reset email.",
+      code: "RECOVERY_SESSION_MISSING",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password,
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      message:
+        "The new password could not be saved. Please request another reset email.",
+    };
+  }
+
+  redirect("/account?password=updated");
+}
+
+export async function signOutAction(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/");
+}
