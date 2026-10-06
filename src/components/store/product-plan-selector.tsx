@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button, Surface } from "@/components/ui";
 import { useCart } from "@/lib/cart/provider";
 import { formatDuration, formatPrice } from "@/lib/catalog/format";
@@ -58,8 +58,6 @@ export function ProductPlanSelector({
   const { addItem, isHydrated } = useCart();
   const [selectedId, setSelectedId] = useState(plans[0]?.id);
   const [addedPlanId, setAddedPlanId] = useState<string | null>(null);
-
-  const firstPlanId = plans[0]?.id;
 
   if (plans.length === 0) {
     return (
