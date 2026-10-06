@@ -36,7 +36,7 @@ function formatFileSize(bytes: number): string {
 }
 
 function getDefaultAlt(fileName: string, productName: string): string {
-  const base = fileName.replace(/.[^/.]+$/, "").replace(/[-_]+/g, " ").trim();
+  const base = fileName.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, " ").trim();
   return base ? productName + " - " + base : productName;
 }
 
