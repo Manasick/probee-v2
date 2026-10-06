@@ -15,17 +15,8 @@ import {
   validatePassword,
   validatePasswordConfirmation,
 } from "@/lib/auth/validation";
+import type { AuthActionState } from "@/lib/auth/action-state";
 
-export interface AuthActionState {
-  ok: boolean;
-  message: string;
-  code?: string;
-}
-
-export const INITIAL_AUTH_STATE: AuthActionState = {
-  ok: false,
-  message: "",
-};
 
 function getAuthErrorMessage(error: AuthError): string {
   const message = error.message.toLowerCase();
