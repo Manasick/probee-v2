@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminErrorState } from "@/components/admin/admin-error-state";
 import { AdminStatus } from "@/components/admin/admin-status";
 import { Container, Surface } from "@/components/ui";
 import { getAdminCustomerDetail } from "@/lib/admin/operations";
