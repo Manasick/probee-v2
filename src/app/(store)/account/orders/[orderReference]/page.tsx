@@ -11,6 +11,7 @@ import {
   getPaymentMethodLabel,
   isPaymentEligibleOrderStatus,
 } from "@/lib/orders/presentation";
+import { getMyReviewDashboard } from "@/lib/reviews/server";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,7 @@ interface OrderRow {
 
 interface OrderItemRow {
   id: string;
+  product_id: string | null;
   product_name_snapshot: string;
   plan_name_snapshot: string | null;
   quantity: number;
@@ -104,12 +106,12 @@ export default async function AccountOrderDetailsPage({
     );
   }
 
-  const [{ data: items, error: itemsError }, { data: payments, error: paymentsError }] =
+  const [{ data: items, error: itemsError }, { data: payments, error: paymentsError }, reviewDashboard] =
     await Promise.all([
       supabase
         .from("order_items")
         .select(
-          "id,product_name_snapshot,plan_name_snapshot,quantity,unit_price,line_total,created_at",
+          "id,product_id,product_name_snapshot,plan_name_snapshot,quantity,unit_price,line_total,created_at",
         )
         .eq("order_id", order.id)
         .order("created_at", { ascending: true }),
@@ -120,11 +122,18 @@ export default async function AccountOrderDetailsPage({
         )
         .eq("order_id", order.id)
         .order("created_at", { ascending: false }),
+      getMyReviewDashboard(),
     ]);
 
   const orderItems = (items ?? []) as OrderItemRow[];
   const paymentRows = (payments ?? []) as PaymentRow[];
   const latestPayment = paymentRows[0] ?? null;
+  const reviewsByProduct = new Map(
+    reviewDashboard.reviews.map((review) => [review.productId, review]),
+  );
+  const orderReviewEligible =
+    order.payment_status === "paid" &&
+    !["cancelled", "failed", "refunded"].includes(order.order_status);
 
   let latestProof: ProofRow | null = null;
 
@@ -231,32 +240,82 @@ export default async function AccountOrderDetailsPage({
 
               <div className="mt-6 grid gap-3">
                 {orderItems.length > 0 ? (
-                  orderItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-[var(--probee-radius-md)] border border-[var(--probee-border-subtle)] bg-surface-2 p-4"
-                    >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="font-semibold text-text-primary">
-                            {item.product_name_snapshot}
-                          </p>
-                          {item.plan_name_snapshot ? (
-                            <p className="mt-1 text-sm text-text-secondary">
-                              {item.plan_name_snapshot}
+                  orderItems.map((item) => {
+                    const existingReview = item.product_id
+                      ? reviewsByProduct.get(item.product_id)
+                      : undefined;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="rounded-[var(--probee-radius-md)] border border-[var(--probee-border-subtle)] bg-surface-2 p-4"
+                      >
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-text-primary">
+                              {item.product_name_snapshot}
                             </p>
-                          ) : null}
-                          <p className="mt-2 text-xs text-text-muted">
-                            Quantity {item.quantity} · Unit price {formatCurrency(item.unit_price, order.currency)}
+                            {item.plan_name_snapshot ? (
+                              <p className="mt-1 text-sm text-text-secondary">
+                                {item.plan_name_snapshot}
+                              </p>
+                            ) : null}
+                            <p className="mt-2 text-xs text-text-muted">
+                              Quantity {item.quantity} · Unit price {formatCurrency(item.unit_price, order.currency)}
+                            </p>
+                          </div>
+
+                          <p className="shrink-0 text-lg font-semibold text-gold">
+                            {formatCurrency(item.line_total, order.currency)}
                           </p>
                         </div>
 
-                        <p className="shrink-0 text-lg font-semibold text-gold">
-                          {formatCurrency(item.line_total, order.currency)}
-                        </p>
+                        {orderReviewEligible && item.product_id ? (
+                          <div className="mt-4 border-t border-[var(--probee-border-subtle)] pt-4">
+                            <p className="text-xs uppercase tracking-[0.08em] text-text-muted">
+                              Review
+                            </p>
+                            {existingReview ? (
+                              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                  <p className="text-sm font-semibold">
+                                    {existingReview.status === "approved"
+                                      ? "Review published"
+                                      : existingReview.status === "pending"
+                                        ? "Review pending moderation"
+                                        : existingReview.status === "rejected"
+                                          ? "Review needs changes"
+                                          : "Review hidden"}
+                                  </p>
+                                  <p className="mt-1 text-xs text-text-muted">
+                                    Rating {existingReview.rating}/5
+                                  </p>
+                                </div>
+                                <Link
+                                  href={"/account/reviews?edit=" + encodeURIComponent(existingReview.id)}
+                                  className="probee-focus-ring inline-flex min-h-10 items-center justify-center rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-3 px-4 text-sm font-semibold text-text-secondary hover:text-text-primary"
+                                >
+                                  Edit review
+                                </Link>
+                              </div>
+                            ) : (
+                              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-sm text-text-secondary">
+                                  Your payment is confirmed. You can now review this product.
+                                </p>
+                                <Link
+                                  href={"/account/reviews?product=" + encodeURIComponent(item.product_id)}
+                                  className="probee-focus-ring inline-flex min-h-10 items-center justify-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover"
+                                >
+                                  Write a review
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <p className="text-sm text-text-muted">
                     No order items are available to display.

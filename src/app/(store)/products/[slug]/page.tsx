@@ -4,11 +4,22 @@ import { Container, Surface } from "@/components/ui";
 import { EmptyState } from "@/components/store/empty-state";
 import { ProductMediaGallery } from "@/components/store/product-media-gallery";
 import { ProductPlanSelector } from "@/components/store/product-plan-selector";
+import { ProductReviews } from "@/components/store/product-reviews";
 import { formatDuration, formatProductPrice } from "@/lib/catalog/format";
 import { getPublicCatalogProductBySlug } from "@/lib/catalog/server";
+import type { ReviewSort } from "@/lib/reviews/types";
 
 interface ProductDetailsPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function getSingleParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+): string {
+  const value = params[key];
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
 
 export const revalidate = 300;
@@ -52,8 +63,10 @@ function formatDynamicValue(value: unknown): string | null {
 
 export default async function ProductDetailsPage({
   params,
+  searchParams,
 }: ProductDetailsPageProps) {
   const { slug } = await params;
+  const query = await searchParams;
   const product = await getPublicCatalogProductBySlug(slug);
 
   if (!product) {
@@ -102,6 +115,20 @@ export default async function ProductDetailsPage({
   const productAttributes = Object.entries(product.customAttributes ?? {}).filter(
     ([, value]) => formatDynamicValue(value) !== null,
   );
+
+  const rawReviewSort = getSingleParam(query, "reviewSort");
+  const reviewSort: ReviewSort =
+    rawReviewSort === "highest" || rawReviewSort === "lowest"
+      ? rawReviewSort
+      : "newest";
+  const reviewPageValue = Number.parseInt(
+    getSingleParam(query, "reviewPage"),
+    10,
+  );
+  const reviewPage =
+    Number.isFinite(reviewPageValue) && reviewPageValue > 0
+      ? Math.min(reviewPageValue, 1000)
+      : 1;
 
   return (
     <section className="probee-section">
@@ -307,14 +334,11 @@ export default async function ProductDetailsPage({
           </section>
         ) : null}
 
-        <section className="mt-12">
-          <h2 className="text-2xl font-semibold">Reviews</h2>
-          <Surface className="mt-5 p-5">
-            <p className="text-sm text-text-muted">
-              Reviews will appear here when the moderation and verified-purchase layer is enabled.
-            </p>
-          </Surface>
-        </section>
+        <ProductReviews
+          productId={product.id}
+          page={reviewPage}
+          sort={reviewSort}
+        />
       </Container>
     </section>
   );
