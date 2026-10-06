@@ -21,6 +21,8 @@ export interface ProductMediaActionState {
   storagePath?: string;
   uploadToken?: string;
   recordDeactivated?: boolean;
+  primaryMediaId?: string;
+  replacementMediaId?: string;
 }
 
 const EMPTY_STATE: ProductMediaActionState = {
@@ -270,6 +272,8 @@ export async function registerProductMediaAction(
   const normalizedAlt = altText.trim();
   const normalizedTitle = title.trim();
   const normalizedCaption = caption.trim();
+  const supabase = await createClient();
+
   const metadataError = validateMetadata(
     normalizedAlt,
     normalizedTitle,
@@ -277,12 +281,12 @@ export async function registerProductMediaAction(
   );
 
   if (metadataError) {
+    await supabase.storage.from(PRODUCT_MEDIA_BUCKET).remove([storagePath]);
     return { ...EMPTY_STATE, message: metadataError };
   }
 
-  const supabase = await createClient();
-
   if (!(await ensureProductExists(supabase, productId))) {
+    await supabase.storage.from(PRODUCT_MEDIA_BUCKET).remove([storagePath]);
     return { ...EMPTY_STATE, message: "The product could not be found." };
   }
 
@@ -291,6 +295,7 @@ export async function registerProductMediaAction(
     .download(storagePath);
 
   if (downloadError || !blob) {
+    await supabase.storage.from(PRODUCT_MEDIA_BUCKET).remove([storagePath]);
     return {
       ...EMPTY_STATE,
       message:
@@ -406,10 +411,23 @@ export async function registerProductMediaAction(
 
   if (!signedUrl) {
     return {
-      ...EMPTY_STATE,
+      ok: true,
       message:
-        "The image was stored, but a preview URL could not be generated.",
+        "Image uploaded successfully, but its preview URL could not be generated yet.",
       mediaId: inserted.id,
+      media: {
+        id: inserted.id,
+        url: "",
+        storagePath: inserted.media_url,
+        alt: inserted.alt_text ?? "",
+        title: inserted.title ?? "",
+        caption: inserted.caption ?? "",
+        kind: "image",
+        sortOrder: inserted.sort_order,
+        isPrimary: inserted.is_primary,
+        active: inserted.is_active,
+        mimeType,
+      },
     };
   }
 
@@ -539,12 +557,21 @@ export async function setProductMediaActiveAction(
     return { ...EMPTY_STATE, message: mapDatabaseError(error) };
   }
 
+  const { data: primary } = await supabase
+    .from("product_media")
+    .select("id")
+    .eq("product_id", productId)
+    .eq("is_active", true)
+    .eq("is_primary", true)
+    .maybeSingle();
+
   return {
     ok: true,
     message: isActive
       ? "Media activated."
       : "Media deactivated.",
     mediaId,
+    primaryMediaId: primary?.id,
   };
 }
 
@@ -652,6 +679,7 @@ export async function deleteProductMediaAction(
       ok: true,
       message: "Media deleted.",
       mediaId,
+      replacementMediaId: media.is_primary ? replacement?.id : undefined,
     };
   }
 
