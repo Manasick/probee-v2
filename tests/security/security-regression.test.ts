@@ -100,7 +100,7 @@ describe("repository security regression contracts", () => {
       "claim_transactional_email",
       "complete_transactional_email",
     ]) {
-      expect(allSql).toMatch(new RegExp(`create(?: or replace)?\\s+function\\s+(?:public\\.)?${functionName}\\b`, "i"));
+      expect(allSql).toMatch(new RegExp(`\\bfunction\\s+(?:public\\.)?${functionName}\\s*\\(`, "i"));
     }
   });
 
