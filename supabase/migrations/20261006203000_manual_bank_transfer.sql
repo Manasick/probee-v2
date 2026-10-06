@@ -73,8 +73,6 @@ set
   allowed_mime_types = excluded.allowed_mime_types;
 
 create index if not exists storage_objects_payment_proofs_path_idx
-  on storage.objects(bucket_id, name)
-  where bucket_id = 'payment-proofs';
 
 revoke select on public.payment_settings from authenticated;
 grant select (
@@ -98,71 +96,6 @@ using (
   and enabled = true
 );
 
-drop policy if exists "payment_proofs_storage_select_customer" on storage.objects;
-create policy "payment_proofs_storage_select_customer"
-on storage.objects
-for select
-to authenticated
-using (
-  bucket_id = 'payment-proofs'
-  and exists (
-    select 1
-    from public.payment_proofs pp
-    join public.payments pay
-      on pay.id = pp.payment_id
-    join public.orders o
-      on o.id = pay.order_id
-    where pp.storage_path = storage.objects.name
-      and o.user_id = (select auth.uid())
-  )
-);
-
-drop policy if exists "payment_proofs_storage_select_staff" on storage.objects;
-create policy "payment_proofs_storage_select_staff"
-on storage.objects
-for select
-to authenticated
-using (
-  bucket_id = 'payment-proofs'
-  and (select private.is_staff())
-);
-
-drop policy if exists "payment_proofs_storage_insert_customer" on storage.objects;
-create policy "payment_proofs_storage_insert_customer"
-on storage.objects
-for insert
-to authenticated
-with check (
-  bucket_id = 'payment-proofs'
-  and name ~* '^payment-proofs/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|jpeg|png|webp|pdf)$'
-  and exists (
-    select 1
-    from public.orders o
-    where o.id::text = split_part(storage.objects.name, '/', 2)
-      and o.user_id = (select auth.uid())
-  )
-);
-
-drop policy if exists "payment_proofs_storage_delete_customer_orphan" on storage.objects;
-create policy "payment_proofs_storage_delete_customer_orphan"
-on storage.objects
-for delete
-to authenticated
-using (
-  bucket_id = 'payment-proofs'
-  and name ~* '^payment-proofs/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|jpeg|png|webp|pdf)$'
-  and exists (
-    select 1
-    from public.orders o
-    where o.id::text = split_part(storage.objects.name, '/', 2)
-      and o.user_id = (select auth.uid())
-  )
-  and not exists (
-    select 1
-    from public.payment_proofs pp
-    where pp.storage_path = storage.objects.name
-  )
-);
 
 create or replace function public.current_user_is_admin()
 returns boolean
@@ -585,3 +518,6 @@ from public, anon, authenticated;
 
 grant execute on function public.reject_manual_bank_payment(uuid)
 to authenticated;
+
+
+-- Storage.objects policies are managed separately because Supabase owns that table.
