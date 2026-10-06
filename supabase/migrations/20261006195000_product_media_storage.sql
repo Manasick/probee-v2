@@ -202,25 +202,34 @@ create index if not exists storage_objects_product_media_path_idx
   where bucket_id = 'product-media';
 
 drop policy if exists "product_media_storage_select_catalog" on storage.objects;
-create policy "product_media_storage_select_catalog"
+drop policy if exists "product_media_storage_select_public" on storage.objects;
+drop policy if exists "product_media_storage_select_staff" on storage.objects;
+
+create policy "product_media_storage_select_public"
 on storage.objects
 for select
 to anon, authenticated
 using (
   bucket_id = 'product-media'
-  and (
-    (select private.is_staff())
-    or exists (
-      select 1
-      from public.product_media pm
-      join public.products p
-        on p.id = pm.product_id
-      where pm.media_url = storage.objects.name
-        and pm.is_active = true
-        and p.is_active = true
-        and p.is_published = true
-    )
+  and exists (
+    select 1
+    from public.product_media pm
+    join public.products p
+      on p.id = pm.product_id
+    where pm.media_url = storage.objects.name
+      and pm.is_active = true
+      and p.is_active = true
+      and p.is_published = true
   )
+);
+
+create policy "product_media_storage_select_staff"
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'product-media'
+  and (select private.is_staff())
 );
 
 drop policy if exists "product_media_storage_insert_staff" on storage.objects;
