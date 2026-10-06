@@ -239,7 +239,6 @@ async function syncTextChildTable(
           ...(row.id ? { id: row.id } : {}),
           product_id: productId,
           feature_text: row.text.trim(),
-          active: undefined,
           is_active: row.active,
           sort_order: index,
         }
