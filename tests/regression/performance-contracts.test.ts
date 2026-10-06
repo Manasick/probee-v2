@@ -25,7 +25,7 @@ describe("production performance contracts", () => {
   it("avoids duplicate product-media database reads on product detail", () => {
     const source = read("src/lib/catalog/server.ts");
     const mediaSelectCount =
-      source.split('.from("product-media")\n      .select(').length - 1;
+      source.match(/\.from\("product_media"\)/g)?.length ?? 0;
     expect(mediaSelectCount).toBe(1);
     expect(source).toContain("includeMedia = false");
   });
