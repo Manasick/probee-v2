@@ -256,12 +256,41 @@ to authenticated
 using (
   bucket_id = 'product-media'
   and (select private.is_staff())
+  and name ~* '^products/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpg|jpeg|png|webp)
+
+drop policy if exists "product_media_storage_delete_staff" on storage.objects;
+create policy "product_media_storage_delete_staff"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'product-media'
+  and (select private.is_staff())
   and name ~* '^products/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpg|jpeg|png|webp)$'
+);
+
 )
 with check (
   bucket_id = 'product-media'
   and (select private.is_staff())
+  and name ~* '^products/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpg|jpeg|png|webp)
+
+drop policy if exists "product_media_storage_delete_staff" on storage.objects;
+create policy "product_media_storage_delete_staff"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'product-media'
+  and (select private.is_staff())
   and name ~* '^products/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpg|jpeg|png|webp)$'
+);
+
+  and exists (
+    select 1
+    from public.product_media pm
+    where pm.media_url = storage.objects.name
+  )
 );
 
 drop policy if exists "product_media_storage_delete_staff" on storage.objects;
