@@ -15,11 +15,25 @@ export function getSiteUrl(): string {
 }
 
 export function safeNextPath(value: string | null | undefined): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("?") ||
+    value.includes("#")
+  ) {
     return "/account";
   }
 
-  return value;
+  if (value === "/admin" || value.startsWith("/admin/")) {
+    return value;
+  }
+
+  if (value === "/account" || value.startsWith("/account/")) {
+    return value;
+  }
+
+  return "/account";
 }
 
 export function getEmailConfirmationUrl(next = "/account"): string {
