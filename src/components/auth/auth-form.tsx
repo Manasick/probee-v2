@@ -5,13 +5,15 @@ import { useActionState, useState } from "react";
 import { Button, Surface } from "@/components/ui";
 import {
   forgotPasswordAction,
-  INITIAL_AUTH_STATE,
   resendVerificationAction,
   resetPasswordAction,
   signInAction,
   signUpAction,
 } from "@/app/auth/actions";
-import type { AuthActionState } from "@/app/auth/actions";
+import {
+  INITIAL_AUTH_STATE,
+  type AuthActionState,
+} from "@/lib/auth/action-state";
 
 type AuthFormMode = "login" | "signup" | "forgot" | "reset";
 
