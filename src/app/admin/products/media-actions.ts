@@ -656,6 +656,8 @@ export async function deleteProductMediaAction(
     .eq("product_id", productId);
 
   if (!deleteError) {
+    let replacementMediaId: string | undefined;
+
     if (media.is_primary) {
       const { data: replacement } = await supabase
         .from("product_media")
@@ -668,10 +670,17 @@ export async function deleteProductMediaAction(
         .maybeSingle();
 
       if (replacement?.id) {
-        await supabase.rpc("set_product_media_primary", {
-          p_product_id: productId,
-          p_media_id: replacement.id,
-        });
+        const { error: primaryError } = await supabase.rpc(
+          "set_product_media_primary",
+          {
+            p_product_id: productId,
+            p_media_id: replacement.id,
+          },
+        );
+
+        if (!primaryError) {
+          replacementMediaId = replacement.id;
+        }
       }
     }
 
@@ -679,7 +688,7 @@ export async function deleteProductMediaAction(
       ok: true,
       message: "Media deleted.",
       mediaId,
-      replacementMediaId: media.is_primary ? replacement?.id : undefined,
+      replacementMediaId,
     };
   }
 
