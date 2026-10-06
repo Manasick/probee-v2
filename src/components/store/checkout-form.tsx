@@ -14,6 +14,7 @@ interface CheckoutFormProps {
   initialEmail: string;
   initialName: string | null;
   initialPhone: string | null;
+  manualBankTransferEnabled: boolean;
 }
 
 interface RehydratePayload {
@@ -78,6 +79,7 @@ export function CheckoutForm({
   initialEmail,
   initialName,
   initialPhone,
+  manualBankTransferEnabled,
 }: CheckoutFormProps) {
   const router = useRouter();
   const { items, isHydrated, clearCart } = useCart();
@@ -364,6 +366,23 @@ export function CheckoutForm({
               Status: {successOrder.orderStatus}
             </p>
           </div>
+
+          {manualBankTransferEnabled && Number(successOrder.total) > 0 ? (
+            <div className="mt-6 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 p-4">
+              <p className="text-sm font-semibold text-text-primary">
+                Next step: manual bank transfer
+              </p>
+              <p className="mt-2 text-sm leading-6 text-text-muted">
+                Complete the bank transfer and submit your payment reference and proof for verification.
+              </p>
+              <Link
+                href={`/payment?order=${encodeURIComponent(successOrder.orderReference)}`}
+                className="probee-focus-ring mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover sm:w-auto"
+              >
+                Continue to payment
+              </Link>
+            </div>
+          ) : null}
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link

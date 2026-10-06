@@ -1,11 +1,15 @@
 import { Container } from "@/components/ui";
 import { CheckoutForm } from "@/components/store/checkout-form";
 import { requireAuthenticated } from "@/lib/auth/server";
+import { getActiveManualBankTransferSettings } from "@/lib/payments/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {
-  const context = await requireAuthenticated("/checkout");
+  const [context, manualBankTransferSettings] = await Promise.all([
+    requireAuthenticated("/checkout"),
+    getActiveManualBankTransferSettings(),
+  ]);
 
   return (
     <section className="probee-section">
@@ -25,6 +29,7 @@ export default async function CheckoutPage() {
             initialEmail={context.user.email ?? ""}
             initialName={context.profile.displayName}
             initialPhone={context.profile.phone}
+            manualBankTransferEnabled={Boolean(manualBankTransferSettings)}
           />
         </div>
       </Container>

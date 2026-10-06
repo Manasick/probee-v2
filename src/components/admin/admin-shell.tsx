@@ -7,7 +7,7 @@ const navigation = [
   { label: "Categories", href: "/admin/categories", live: false },
   { label: "Orders", href: "/admin/orders", live: false },
   { label: "Customers", href: "/admin/customers", live: false },
-  { label: "Payments", href: "/admin/payments", live: false },
+  { label: "Payments", href: "/admin/payments", live: true },
   { label: "Settings", href: "/admin/settings", live: false },
 ] as const;
 
