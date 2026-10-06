@@ -63,6 +63,7 @@ export function ProductMediaManager({
 
     const supabase = createClient();
     const fileArray = Array.from(files);
+    let hadError = false;
 
     for (let index = 0; index < fileArray.length; index += 1) {
       const file = fileArray[index];
@@ -81,6 +82,7 @@ export function ProductMediaManager({
           file.type as (typeof PRODUCT_IMAGE_MIME_TYPES)[number],
         )
       ) {
+        hadError = true;
         setError(
           file.name +
             " was rejected. Only JPEG, PNG and WebP images are supported.",
@@ -89,6 +91,7 @@ export function ProductMediaManager({
       }
 
       if (file.size <= 0 || file.size > MAX_PRODUCT_MEDIA_FILE_SIZE) {
+        hadError = true;
         setError(
           file.name +
             " was rejected. Maximum image size is " +
@@ -106,6 +109,7 @@ export function ProductMediaManager({
         );
 
         if (!prepared.ok || !prepared.storagePath || !prepared.uploadToken) {
+          hadError = true;
           setError(prepared.message || "The upload could not be prepared.");
           continue;
         }
@@ -119,6 +123,7 @@ export function ProductMediaManager({
           );
 
         if (uploadError) {
+          hadError = true;
           setError(
             file.name +
               ": " +
@@ -137,6 +142,7 @@ export function ProductMediaManager({
         );
 
         if (!registered.ok || !registered.media) {
+          hadError = true;
           setError(
             registered.message ||
               "The file uploaded but could not be registered in the catalog.",
@@ -146,13 +152,14 @@ export function ProductMediaManager({
 
         setMedia((current) => [...current, registered.media as AdminProductMedia]);
       } catch {
+        hadError = true;
         setError(file.name + ": The upload could not be completed.");
       }
     }
 
     setBusy(false);
     setStatus(
-      error
+      hadError
         ? "Upload finished with one or more errors."
         : "Media upload finished.",
     );
@@ -233,18 +240,17 @@ export function ProductMediaManager({
     }
 
     setMedia((current) =>
-      current.map((currentItem) =>
-        currentItem.id === item.id
-          ? {
-              ...currentItem,
-              active: !item.active,
-              isPrimary:
-                item.active && item.isPrimary
-                  ? false
-                  : currentItem.isPrimary,
-            }
-          : currentItem,
-      ),
+      current.map((currentItem) => ({
+        ...currentItem,
+        active:
+          currentItem.id === item.id
+            ? !item.active
+            : currentItem.active,
+        isPrimary:
+          result.primaryMediaId
+            ? currentItem.id === result.primaryMediaId
+            : currentItem.isPrimary,
+      })),
     );
 
     setStatus(result.message);
@@ -319,6 +325,10 @@ export function ProductMediaManager({
         .map((currentItem, index) => ({
           ...currentItem,
           sortOrder: index,
+          isPrimary:
+            result.replacementMediaId
+              ? currentItem.id === result.replacementMediaId
+              : currentItem.isPrimary,
         })),
     );
     setStatus(
