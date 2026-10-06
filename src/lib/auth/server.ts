@@ -11,7 +11,7 @@ export interface AccountProfile {
   updatedAt: string;
 }
 
-export interface AuthenticatedProfile extends AccountProfile {}
+export type AuthenticatedProfile = AccountProfile;
 
 export interface AuthenticatedContext {
   user: User;
