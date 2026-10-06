@@ -89,19 +89,35 @@ async function signMedia(
       Number(b.is_primary) - Number(a.is_primary),
   );
 
-  const results = await Promise.all(
-    sortedRows.map(async (row) => {
-      const { data } = await supabase.storage
-        .from("product-media")
-        .createSignedUrl(row.media_url, 60 * 60 * 24);
+  if (sortedRows.length === 0) {
+    return [];
+  }
 
-      if (!data?.signedUrl) {
-        return null;
-      }
+  const paths = sortedRows.map((row) => row.media_url);
+  const { data } = await supabase.storage
+    .from("product-media")
+    .createSignedUrls(paths, 60 * 60 * 24);
 
-      return {
+  const signedUrlByPath = new Map(
+    ((data ?? []) as Array<{ path?: string; signedUrl?: string }>)
+      .filter(
+        (item): item is { path: string; signedUrl: string } =>
+          typeof item.path === "string" && typeof item.signedUrl === "string",
+      )
+      .map((item) => [item.path, item.signedUrl]),
+  );
+
+  return sortedRows.flatMap((row) => {
+    const signedUrl = signedUrlByPath.get(row.media_url);
+
+    if (!signedUrl) {
+      return [];
+    }
+
+    return [
+      {
         id: row.id,
-        url: data.signedUrl,
+        url: signedUrl,
         storagePath: row.media_url,
         alt: row.alt_text ?? undefined,
         title: row.title ?? undefined,
@@ -110,11 +126,9 @@ async function signMedia(
         sortOrder: row.sort_order,
         isPrimary: row.is_primary,
         active: true,
-      } satisfies ProductMedia;
-    }),
-  );
-
-  return results.filter((item): item is ProductMedia => Boolean(item));
+      } satisfies ProductMedia,
+    ];
+  });
 }
 
 function mapPlan(row: {
@@ -295,20 +309,22 @@ async function buildProductMap(
 
   const signedPrimaryEntries = includeMedia
     ? []
-    : await Promise.all(
-        primaryPaths.map(async (path) => {
-          const { data } = await supabase.storage
+    : primaryPaths.length === 0
+      ? []
+      : ((
+          await supabase.storage
             .from("product-media")
-            .createSignedUrl(path, 60 * 60 * 24);
-
-          return [path, data?.signedUrl ?? null] as const;
-        }),
-      );
+            .createSignedUrls(primaryPaths, 60 * 60 * 24)
+        ).data ?? []) as Array<{ path?: string; signedUrl?: string }>;
 
   const signedPrimaryMap = new Map(
-    signedPrimaryEntries.filter(
-      (entry): entry is [string, string] => Boolean(entry[1]),
-    ),
+    signedPrimaryEntries
+      .filter(
+        (entry): entry is { path: string; signedUrl: string } =>
+          typeof entry.path === "string" &&
+          typeof entry.signedUrl === "string",
+      )
+      .map((entry) => [entry.path, entry.signedUrl]),
   );
 
   return Promise.all(
