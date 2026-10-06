@@ -311,30 +311,33 @@ async function buildProductMap(
     ),
   );
 
-  return products.map((row) => {
-    const product = mapBaseProduct(row);
-    const media = mediaMap.get(row.id) ?? [];
-    const firstMedia = media.find((item) => item.is_primary) ?? media[0];
+  return Promise.all(
+    products.map(async (row) => {
+      const product = mapBaseProduct(row);
+      const media = mediaMap.get(row.id) ?? [];
+      const firstMedia =
+        media.find((item) => item.is_primary) ?? media[0];
 
-    product.category = categoryMap.get(row.id);
-    product.plans = planMap.get(row.id) ?? [];
+      product.category = categoryMap.get(row.id);
+      product.plans = planMap.get(row.id) ?? [];
 
-    if (includeMedia) {
-      product.media = await signMedia(supabase, media);
-      product.coverUrl =
-        product.media.find((item) => item.isPrimary)?.url ??
-        product.media[0]?.url ??
-        row.cover_url ??
-        undefined;
-    } else {
-      product.coverUrl =
-        signedPrimaryMap.get(firstMedia?.media_url ?? "") ??
-        row.cover_url ??
-        undefined;
-    }
+      if (includeMedia) {
+        product.media = await signMedia(supabase, media);
+        product.coverUrl =
+          product.media.find((item) => item.isPrimary)?.url ??
+          product.media[0]?.url ??
+          row.cover_url ??
+          undefined;
+      } else {
+        product.coverUrl =
+          signedPrimaryMap.get(firstMedia?.media_url ?? "") ??
+          row.cover_url ??
+          undefined;
+      }
 
-    return product;
-  });
+      return product;
+    }),
+  );
 }
 
 export async function getPublicCatalogCategories(): Promise<CatalogCategory[]> {
