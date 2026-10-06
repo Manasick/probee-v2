@@ -72,9 +72,7 @@ set
   file_size_limit = 10485760,
   allowed_mime_types = excluded.allowed_mime_types;
 
-create index if not exists storage_objects_payment_proofs_path_idx
-
-revoke select on public.payment_settings from authenticated;
+grant select on public.payment_settings to authenticated;
 grant select (
   payment_method,
   enabled,
