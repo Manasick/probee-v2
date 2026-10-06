@@ -1,8 +1,19 @@
 import { Container } from "@/components/ui";
 import { CatalogControls } from "@/components/store/catalog-controls";
 import { ProductGrid } from "@/components/store/product-grid";
+import {
+  getPublicCatalogCategories,
+  getPublicCatalogProducts,
+} from "@/lib/catalog/server";
 
-export default function ProductsPage() {
+export const revalidate = 300;
+
+export default async function ProductsPage() {
+  const [products, categories] = await Promise.all([
+    getPublicCatalogProducts(24),
+    getPublicCatalogCategories(),
+  ]);
+
   return (
     <section className="probee-section">
       <Container>
@@ -12,17 +23,17 @@ export default function ProductsPage() {
             Explore the ProBee catalog.
           </h1>
           <p className="mt-4 text-base leading-7 text-text-secondary">
-            Products and plans will be rendered from the catalog data layer once
-            it is populated.
+            Products and their storefront media are loaded from the protected
+            catalog data layer.
           </p>
         </div>
 
         <div className="mt-8">
-          <CatalogControls categories={[]} />
+          <CatalogControls categories={categories} />
         </div>
 
         <div className="mt-8">
-          <ProductGrid products={[]} />
+          <ProductGrid products={products} />
         </div>
       </Container>
     </section>
