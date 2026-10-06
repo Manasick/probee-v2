@@ -288,6 +288,7 @@ export function AuthForm({
           <SubmitButton
             label={pending ? "Sending instructions…" : "Send reset email"}
             pendingLabel={pending ? "Please wait" : ""}
+            disabled={pending}
           />
         ) : null}
 
@@ -357,6 +358,7 @@ export function AuthForm({
           <SubmitButton
             label={pending ? "Updating password…" : "Update password"}
             pendingLabel={pending ? "Please wait" : ""}
+            disabled={pending}
           />
         </>
       ) : (
