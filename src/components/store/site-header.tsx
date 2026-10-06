@@ -12,13 +12,23 @@ const navItems = [
   { label: "Support", href: "/#support" },
 ];
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  accountEmail?: string | null;
+  emailVerified?: boolean;
+}
+
+export function SiteHeader({
+  accountEmail = null,
+  emailVerified = false,
+}: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   function closeMenu() {
     setMenuOpen(false);
   }
+
+  const accountLabel = accountEmail ? "Account" : "Sign in";
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--probee-border-subtle)] bg-background/90 backdrop-blur-xl">
@@ -88,17 +98,16 @@ export function SiteHeader() {
               </svg>
             </Link>
 
-            <button
-              type="button"
-              disabled
-              className="probee-focus-ring hidden rounded-lg p-2 text-text-muted opacity-60 md:inline-flex"
-              aria-label="Account coming soon"
-              title="Account coming soon"
+            <Link
+              href={accountEmail ? "/account" : "/login"}
+              className="probee-focus-ring hidden min-h-10 items-center rounded-lg px-3 text-xs font-semibold text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary md:inline-flex"
+              aria-label={accountLabel}
+              title={accountEmail ? accountEmail : "Sign in"}
             >
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
-                className="size-5"
+                className="mr-2 size-5"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
@@ -106,7 +115,13 @@ export function SiteHeader() {
                 <circle cx="12" cy="8" r="3.2" />
                 <path d="M5.5 20c.9-3.4 3.1-5.1 6.5-5.1s5.6 1.7 6.5 5.1" />
               </svg>
-            </button>
+              {accountLabel}
+              {accountEmail && !emailVerified ? (
+                <span className="ml-2 rounded-full bg-red-400/10 px-2 py-0.5 text-[0.625rem] uppercase tracking-[0.1em] text-red-200">
+                  Activate
+                </span>
+              ) : null}
+            </Link>
 
             <button
               type="button"
@@ -176,10 +191,20 @@ export function SiteHeader() {
                 </Link>
               ))}
             </div>
+
             <div className="border-t border-[var(--probee-border-subtle)] pt-2">
-              <span className="block px-3 py-3 text-sm text-text-muted">
-                Account will be enabled with authentication.
-              </span>
+              <Link
+                href={accountEmail ? "/account" : "/login"}
+                onClick={closeMenu}
+                className="probee-focus-ring flex items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+              >
+                <span>{accountLabel}</span>
+                {accountEmail && !emailVerified ? (
+                  <span className="rounded-full bg-red-400/10 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.1em] text-red-200">
+                    Activate
+                  </span>
+                ) : null}
+              </Link>
             </div>
           </nav>
         ) : null}
