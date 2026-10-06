@@ -2,14 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicEnv, hasSupabasePublicEnv } from "./env";
 
+function isProtectedCustomerRoute(pathname: string): boolean {
+  return pathname === "/account" || pathname.startsWith("/account/");
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  // Supabase is intentionally optional until local/deployment environment
-  // variables are configured. Once configured, every matched request gets
-  // the secure cookie refresh path required by SSR.
   if (!hasSupabasePublicEnv()) {
     return supabaseResponse;
   }
@@ -41,9 +42,27 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // getClaims() verifies the JWT and refreshes an expired auth session
-  // without treating the client-side session cookie as trusted data.
-  await supabase.auth.getClaims();
+  const {
+    data: { claims },
+  } = await supabase.auth.getClaims();
+
+  if (isProtectedCustomerRoute(request.nextUrl.pathname) && !claims) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    loginUrl.searchParams.set(
+      "next",
+      request.nextUrl.pathname + request.nextUrl.search,
+    );
+
+    const response = NextResponse.redirect(loginUrl);
+
+    request.cookies.getAll().forEach((cookie) => {
+      response.cookies.set(cookie.name, cookie.value);
+    });
+
+    return response;
+  }
 
   return supabaseResponse;
 }
