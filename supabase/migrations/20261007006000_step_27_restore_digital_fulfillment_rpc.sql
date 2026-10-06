@@ -42,9 +42,7 @@ begin
     pp.delivery_type as plan_delivery_type,
     pp.delivery_details as plan_delivery_details,
     pp.duration as plan_duration,
-    pp.duration_unit as plan_duration_unit,
-    p.duration as product_duration,
-    p.duration_unit as product_duration_unit
+    pp.duration_unit as plan_duration_unit
   into v_item
   from public.order_items oi
   join public.orders o on o.id = oi.order_id
@@ -93,8 +91,8 @@ begin
     raise exception 'digital:access_url_invalid';
   end if;
 
-  v_duration := coalesce(v_item.plan_duration, v_item.product_duration);
-  v_duration_unit := lower(coalesce(nullif(btrim(v_item.plan_duration_unit), ''), nullif(btrim(v_item.product_duration_unit), '')));
+  v_duration := v_item.plan_duration;
+  v_duration_unit := lower(nullif(btrim(v_item.plan_duration_unit), ''));
 
   if v_duration is not null and v_duration > 0 then
     if v_duration_unit in ('day','days') then
