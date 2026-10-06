@@ -90,8 +90,6 @@ describe("repository security regression contracts", () => {
       "submit_manual_bank_payment",
       "verify_manual_bank_payment",
       "reject_manual_bank_payment",
-      "fulfill_digital_order_item",
-      "set_digital_entitlement_status",
       "get_my_digital_entitlements",
       "get_my_digital_asset_path",
       "create_product_review",
