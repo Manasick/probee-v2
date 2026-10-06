@@ -8,14 +8,6 @@ interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
 
-function formatSlug(slug: string): string {
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
