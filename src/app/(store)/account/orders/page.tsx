@@ -309,8 +309,14 @@ export default async function AccountOrdersPage({
                   ? "Try a different order reference or status filter."
                   : "Orders you place through ProBee will appear here."
               }
-              actionLabel={search || status ? "View all orders" : "Browse products"}
-              actionHref={search || status ? "/account/orders" : "/products"}
+              action={
+                <Link
+                  href={search || status ? "/account/orders" : "/products"}
+                  className="probee-focus-ring inline-flex min-h-11 items-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover"
+                >
+                  {search || status ? "View all orders" : "Browse products"}
+                </Link>
+              }
             />
           </div>
         )}
