@@ -26,7 +26,7 @@ describe("transactional email regression contracts", () => {
     }
 
     expect(server).toContain("function idempotencyKey");
-    expect(server).toContain("request.event + ":" + sourceId(request)");
+    expect(server).toContain('request.event + ":" + sourceId(request)');
     expect(server).toContain("alreadySent");
     expect(server).toContain("inProgress");
     expect(server).toContain("EMAIL_RETRY_LIMIT_REACHED");
