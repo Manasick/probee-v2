@@ -39,8 +39,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    setItems(readStoredCart());
-    setIsHydrated(true);
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (cancelled) return;
+
+      setItems(readStoredCart());
+      setIsHydrated(true);
+    });
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "probee-cart-v1") {
@@ -50,7 +56,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("storage", handleStorage);
 
-    return () => window.removeEventListener("storage", handleStorage);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   useEffect(() => {
