@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
-export interface AccountProfile {
+export interface AuthenticatedProfile {
   id: string;
   displayName: string | null;
   phone: string | null;
@@ -12,68 +11,79 @@ export interface AccountProfile {
   updatedAt: string;
 }
 
-export async function getCurrentUser(): Promise<User | null> {
+export interface AuthenticatedContext {
+  user: User;
+  profile: AuthenticatedProfile;
+  isStaff: boolean;
+}
+
+export async function getAuthenticatedContext(): Promise<AuthenticatedContext | null> {
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return user ?? null;
-}
-
-export async function getCurrentUserOrRedirect(
-  next = "/account",
-): Promise<User> {
-  const user = await getCurrentUser();
-
   if (!user) {
-    redirect("/login?next=" + encodeURIComponent(next));
+    return null;
   }
 
-  return user;
-}
-
-export async function ensureProfile(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<AccountProfile | null> {
-  const { data, error } = await supabase
+  let { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id,display_name,phone,avatar_url,created_at,updated_at")
-    .eq("id", userId)
+    .eq("id", user.id)
     .maybeSingle();
 
-  if (error) {
+  if (profileError) {
     return null;
   }
 
-  if (data) {
-    return {
-      id: data.id,
-      displayName: data.display_name,
-      phone: data.phone,
-      avatarUrl: data.avatar_url,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
+  if (!profile) {
+    const { error: insertError } = await supabase
+      .from("profiles")
+      .insert({ id: user.id });
+
+    if (insertError) {
+      return null;
+    }
+
+    const result = await supabase
+      .from("profiles")
+      .select("id,display_name,phone,avatar_url,created_at,updated_at")
+      .eq("id", user.id)
+      .single();
+
+    if (result.error) {
+      return null;
+    }
+
+    profile = result.data;
   }
 
-  const { data: inserted, error: insertError } = await supabase
-    .from("profiles")
-    .insert({ id: userId })
-    .select("id,display_name,phone,avatar_url,created_at,updated_at")
-    .single();
-
-  if (insertError || !inserted) {
-    return null;
-  }
+  const { data: isStaff } = await supabase.rpc("current_user_is_staff");
 
   return {
-    id: inserted.id,
-    displayName: inserted.display_name,
-    phone: inserted.phone,
-    avatarUrl: inserted.avatar_url,
-    createdAt: inserted.created_at,
-    updatedAt: inserted.updated_at,
+    user,
+    profile: {
+      id: profile.id,
+      displayName: profile.display_name,
+      phone: profile.phone,
+      avatarUrl: profile.avatar_url,
+      createdAt: profile.created_at,
+      updatedAt: profile.updated_at,
+    },
+    isStaff: Boolean(isStaff),
   };
+}
+
+export async function requireAuthenticated(
+  nextPath = "/account",
+): Promise<AuthenticatedContext> {
+  const context = await getAuthenticatedContext();
+
+  if (!context) {
+    redirect("/login?next=" + encodeURIComponent(nextPath));
+  }
+
+  return context;
 }
