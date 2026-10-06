@@ -199,17 +199,30 @@ export function ProductEditor({
     index: number,
     value: string,
   ) {
-    const next = [...product[key]] as typeof product[typeof key];
-
-    if (key === "features" || key === "packageInclusions") {
-      const list = [...next] as AdminProductInput["features"];
+    if (key === "features") {
+      const list = [...product.features];
       list[index] = { ...list[index], text: value };
-      updateProduct(key, list);
+      updateProduct("features", list);
       return;
     }
 
-    next[index] = value;
-    updateProduct(key, next);
+    if (key === "packageInclusions") {
+      const list = [...product.packageInclusions];
+      list[index] = { ...list[index], text: value };
+      updateProduct("packageInclusions", list);
+      return;
+    }
+
+    if (key === "customerRequirements") {
+      const list = [...product.customerRequirements];
+      list[index] = value;
+      updateProduct("customerRequirements", list);
+      return;
+    }
+
+    const list = [...product.seoKeywords];
+    list[index] = value;
+    updateProduct("seoKeywords", list);
   }
 
   function toggleTextItem(
