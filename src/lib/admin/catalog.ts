@@ -4,6 +4,7 @@ import { sanitizeSearchTerm } from "./validation";
 import type {
   AdminProductInput,
   AdminProductListItem,
+  AdminProductMedia,
   CatalogCategory,
 } from "@/lib/catalog/types";
 
@@ -85,12 +86,59 @@ function asProductInput(product: Record<string, unknown>): AdminProductInput {
     features: [],
     packageInclusions: [],
     plans: [],
+    media: [],
   };
 }
 
 function friendlyReadError(): Error {
   return new Error(
     "The catalog could not be loaded right now. Please try again.",
+  );
+}
+
+function mediaMimeType(storagePath: string): string {
+  const extension = storagePath.split(".").pop()?.toLowerCase();
+
+  if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return "image/*";
+}
+
+async function mapAdminMedia(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rows: Array<{
+    id: string;
+    media_url: string;
+    media_type: string;
+    alt_text: string | null;
+    title: string | null;
+    caption: string | null;
+    sort_order: number;
+    is_primary: boolean;
+    is_active: boolean;
+  }>,
+): Promise<AdminProductMedia[]> {
+  return Promise.all(
+    rows.map(async (row) => {
+      const { data } = await supabase.storage
+        .from("product-media")
+        .createSignedUrl(row.media_url, 60 * 60 * 24);
+
+      return {
+        id: row.id,
+        url: data?.signedUrl ?? "",
+        storagePath: row.media_url,
+        alt: row.alt_text ?? "",
+        title: row.title ?? "",
+        caption: row.caption ?? "",
+        kind: row.media_type as AdminProductMedia["kind"],
+        sortOrder: row.sort_order,
+        isPrimary: row.is_primary,
+        active: row.is_active,
+        mimeType: mediaMimeType(row.media_url),
+      };
+    }),
   );
 }
 
@@ -309,6 +357,7 @@ export async function getAdminProductEditorData(
     { data: featureRows, error: featureError },
     { data: inclusionRows, error: inclusionError },
     { data: planRows, error: planError },
+    { data: mediaRows, error: mediaError },
   ] = await Promise.all([
     supabase
       .from("products")
@@ -338,6 +387,14 @@ export async function getAdminProductEditorData(
       )
       .eq("product_id", productId)
       .order("sort_order", { ascending: true }),
+    supabase
+      .from("product_media")
+      .select(
+        "id,media_url,media_type,alt_text,title,caption,sort_order,is_primary,is_active",
+      )
+      .eq("product_id", productId)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
   ]);
 
   if (
@@ -345,7 +402,8 @@ export async function getAdminProductEditorData(
     categoryError ||
     featureError ||
     inclusionError ||
-    planError
+    planError ||
+    mediaError
   ) {
     throw friendlyReadError();
   }
@@ -370,6 +428,8 @@ export async function getAdminProductEditorData(
     active: row.is_active,
     sortOrder: row.sort_order,
   }));
+
+  input.media = await mapAdminMedia(supabase, mediaRows ?? []);
 
   input.plans = (planRows ?? []).map((plan) => ({
     id: plan.id,
