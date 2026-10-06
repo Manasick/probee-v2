@@ -6,6 +6,7 @@ import type { CatalogProduct } from "@/lib/catalog/types";
 
 interface ProductCardProps {
   product: CatalogProduct;
+  priority?: boolean;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
