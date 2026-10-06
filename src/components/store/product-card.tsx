@@ -9,7 +9,10 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({
+  product,
+  priority = false,
+}: ProductCardProps) {
   const price = formatProductPrice(product);
   const planCount = product.plans.length;
   const firstPlanDuration = product.plans[0]
@@ -32,8 +35,8 @@ export function ProductCard({ product }: ProductCardProps) {
               alt=""
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-              unoptimized
+              sizes="(min-width: 1280px) 30vw, (min-width: 640px) 45vw, 100vw"
+              priority={priority}
             />
           ) : (
             <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,rgba(185,160,106,0.09),transparent_42%)]">
