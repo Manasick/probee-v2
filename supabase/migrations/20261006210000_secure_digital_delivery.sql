@@ -312,7 +312,7 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $digital$
   select exists (
     select 1
     from public.digital_delivery_assets a
@@ -329,7 +329,7 @@ as $
       and o.payment_status = 'paid'
       and o.order_status not in ('cancelled', 'failed', 'refunded')
   );
-$;
+$digital$;
 
 revoke execute on function private.can_read_digital_asset_storage(text) from public;
 grant execute on function private.can_read_digital_asset_storage(text) to authenticated;
