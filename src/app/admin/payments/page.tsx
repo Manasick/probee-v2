@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container, Surface } from "@/components/ui";
 import { AdminStatus } from "@/components/admin/admin-status";
+import { AdminConfirmForm } from "@/components/admin/admin-confirm-form";
 import { getAdminPaymentProofUrls, getAdminPayments } from "@/lib/admin/operations";
 import { markManualPaymentPaidAction, rejectManualPaymentAction } from "./actions";
 
@@ -149,8 +150,12 @@ export default async function AdminPaymentsPage({
 
                   {paymentStatus === "pending" ? (
                     <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                      <form action={markManualPaymentPaidAction}><input type="hidden" name="paymentId" value={String(payment.id)} /><button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse sm:w-auto">Mark as paid</button></form>
-                      <form action={rejectManualPaymentAction}><input type="hidden" name="paymentId" value={String(payment.id)} /><button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg border border-red-300/20 bg-red-300/5 px-4 text-sm font-semibold text-red-100 sm:w-auto">Reject payment</button></form>
+                      <AdminConfirmForm action={markManualPaymentPaidAction} fields={{ paymentId: String(payment.id) }} confirmation="Mark this manual payment as paid? The secure payment workflow will validate the payment and amount before changing state.">
+                        <button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse sm:w-auto">Mark as paid</button>
+                      </AdminConfirmForm>
+                      <AdminConfirmForm action={rejectManualPaymentAction} fields={{ paymentId: String(payment.id) }} confirmation="Reject this payment proof? This will keep the order unpaid.">
+                        <button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg border border-red-300/20 bg-red-300/5 px-4 text-sm font-semibold text-red-100 sm:w-auto">Reject payment</button>
+                      </AdminConfirmForm>
                     </div>
                   ) : null}
                 </Surface>

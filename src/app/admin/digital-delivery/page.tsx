@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container, Surface } from "@/components/ui";
 import { AdminStatus } from "@/components/admin/admin-status";
+import { AdminConfirmForm } from "@/components/admin/admin-confirm-form";
 import { getAdminDigitalQueue } from "@/lib/admin/operations";
 import {
   fulfillDigitalOrderItemAction,
@@ -119,11 +120,17 @@ export default async function DigitalDeliveryAdminPage({
                         <div className="flex flex-wrap gap-2">
                           {accessStatus === "active" ? (
                             <>
-                              <form action={setDigitalEntitlementStatusAction}><input type="hidden" name="entitlementId" value={entitlementId}/><input type="hidden" name="accessStatus" value="suspended"/><button type="submit" className="probee-focus-ring min-h-10 rounded-lg border border-amber-300/20 bg-amber-300/5 px-3 text-xs font-semibold text-amber-100">Suspend</button></form>
-                              <form action={setDigitalEntitlementStatusAction}><input type="hidden" name="entitlementId" value={entitlementId}/><input type="hidden" name="accessStatus" value="revoked"/><button type="submit" className="probee-focus-ring min-h-10 rounded-lg border border-red-300/20 bg-red-300/5 px-3 text-xs font-semibold text-red-100">Revoke</button></form>
+                              <AdminConfirmForm action={setDigitalEntitlementStatusAction} fields={{ entitlementId, accessStatus: "suspended" }} confirmation="Suspend this digital entitlement? Customer access may stop until it is reactivated." >
+                                <button type="submit" className="probee-focus-ring min-h-10 rounded-lg border border-amber-300/20 bg-amber-300/5 px-3 text-xs font-semibold text-amber-100">Suspend</button>
+                              </AdminConfirmForm>
+                              <AdminConfirmForm action={setDigitalEntitlementStatusAction} fields={{ entitlementId, accessStatus: "revoked" }} confirmation="Revoke this digital entitlement? This is a sensitive fulfillment action." >
+                                <button type="submit" className="probee-focus-ring min-h-10 rounded-lg border border-red-300/20 bg-red-300/5 px-3 text-xs font-semibold text-red-100">Revoke</button>
+                              </AdminConfirmForm>
                             </>
                           ) : accessStatus === "suspended" || accessStatus === "revoked" ? (
-                            <form action={setDigitalEntitlementStatusAction}><input type="hidden" name="entitlementId" value={entitlementId}/><input type="hidden" name="accessStatus" value="active"/><button type="submit" className="probee-focus-ring min-h-10 rounded-lg bg-gold px-3 text-xs font-semibold text-text-inverse">Reactivate</button></form>
+                            <AdminConfirmForm action={setDigitalEntitlementStatusAction} fields={{ entitlementId, accessStatus: "active" }} confirmation="Reactivate this digital entitlement? The secure server workflow will revalidate order and payment eligibility." >
+                              <button type="submit" className="probee-focus-ring min-h-10 rounded-lg bg-gold px-3 text-xs font-semibold text-text-inverse">Reactivate</button>
+                            </AdminConfirmForm>
                           ) : null}
                         </div>
                       </div>

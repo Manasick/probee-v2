@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminErrorState } from "@/components/admin/admin-error-state";
 import { AdminStatus } from "@/components/admin/admin-status";
+import { AdminConfirmForm } from "@/components/admin/admin-confirm-form";
 import { Container, Surface } from "@/components/ui";
 import { getAdminOrderDetail } from "@/lib/admin/operations";
 import { setOrderStatusAction } from "../actions";
@@ -44,7 +45,7 @@ export default async function AdminOrderDetailPage({ params, searchParams }: { p
         <Surface className="p-5 sm:p-6">
           <p className="probee-label">Status</p>
           <div className="mt-4 flex flex-wrap gap-2"><AdminStatus label={order.orderStatus} tone={tone(order.orderStatus)} /><AdminStatus label={order.paymentStatus} tone={tone(order.paymentStatus)} /></div>
-          {canChange ? <form action={setOrderStatusAction} className="mt-5 grid gap-3"><input type="hidden" name="orderId" value={order.id}/><label className="grid gap-2 text-sm font-medium">Order status<select name="orderStatus" defaultValue={order.orderStatus} className="min-h-11 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3 text-sm"><option value="pending">pending</option><option value="processing">processing</option><option value="completed">completed</option><option value="cancelled">cancelled</option><option value="failed">failed</option></select></label><button type="submit" className="probee-focus-ring min-h-11 rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse">Save order status</button><p className="text-xs text-text-muted">This never changes payment status.</p></form> : <p className="mt-4 text-xs text-text-muted">This order is in a terminal status.</p>}
+          {canChange ? <AdminConfirmForm action={setOrderStatusAction} fields={{ orderId: order.id }} confirmation="Change this order status? Payment status will not be changed. The server will validate the allowed transition." className="mt-5 grid gap-3"><label className="grid gap-2 text-sm font-medium">Order status<select name="orderStatus" defaultValue={order.orderStatus} className="min-h-11 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3 text-sm"><option value="pending">pending</option><option value="processing">processing</option><option value="completed">completed</option><option value="cancelled">cancelled</option><option value="failed">failed</option></select></label><button type="submit" className="probee-focus-ring min-h-11 rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse">Save order status</button><p className="text-xs text-text-muted">This never changes payment status.</p></AdminConfirmForm> : <p className="mt-4 text-xs text-text-muted">This order is in a terminal status.</p>}
         </Surface>
       </div>
 

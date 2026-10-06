@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container, Surface } from "@/components/ui";
+import { AdminConfirmForm } from "@/components/admin/admin-confirm-form";
 import { requireStaff } from "@/lib/admin/auth";
 import { getAdminReviews } from "@/lib/reviews/server";
 import type { ReviewStatus } from "@/lib/reviews/types";
@@ -160,11 +161,12 @@ export default async function AdminReviewsPage({
               ) : null}
 
               <div className="mt-5 border-t border-[var(--probee-border-subtle)] pt-5">
-                <form
+                <AdminConfirmForm
                   action={moderateReviewAction}
+                  fields={{ reviewId: review.id }}
+                  confirmation="Apply this review moderation decision? Approval is rechecked against the verified-purchase rules on the server."
                   className="grid gap-3 lg:grid-cols-[180px_1fr_auto]"
                 >
-                  <input type="hidden" name="reviewId" value={review.id} />
                   <select
                     name="status"
                     defaultValue={review.status}
@@ -190,7 +192,7 @@ export default async function AdminReviewsPage({
                   >
                     Save status
                   </button>
-                </form>
+                </AdminConfirmForm>
               </div>
             </Surface>
           ))}
