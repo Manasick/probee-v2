@@ -31,8 +31,8 @@ create unique index if not exists product_media_storage_path_uniq
 alter table public.product_media
   add constraint product_media_storage_path_check
   check (
-    media_url ~* '^products/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpg|jpeg|png|webp)
-
+    media_url ~* '^products/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[A-Za-z0-9][A-Za-z0-9._-]*\\.(jpg|jpeg|png|webp)$'
+  );
 create or replace function public.set_product_media_primary(
   p_product_id uuid,
   p_media_id uuid
