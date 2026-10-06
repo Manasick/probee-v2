@@ -222,25 +222,33 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     throw new Error("The payment proof metadata could not be loaded.");
   }
 
-  const paymentProofs = await Promise.all(
-    (proofRows ?? []).map(async (proof) => {
-      const { data: signed } = await supabase.storage
+  const proofPaths = (proofRows ?? []).map((proof) => proof.storage_path);
+  const { data: signedProofs } = proofPaths.length
+    ? await supabase.storage
         .from("payment-proofs")
-        .createSignedUrl(proof.storage_path, 10 * 60);
+        .createSignedUrls(proofPaths, 10 * 60)
+    : { data: [] };
 
-      return {
-        id: proof.id,
-        paymentId: proof.payment_id,
-        originalFilename: proof.original_filename,
-        mimeType: proof.mime_type,
-        fileSizeBytes: proof.file_size_bytes,
-        verificationStatus: proof.verification_status,
-        verifiedAt: proof.verified_at,
-        createdAt: proof.created_at,
-        signedUrl: signed?.signedUrl ?? null,
-      };
-    }),
+  const signedProofByPath = new Map(
+    ((signedProofs ?? []) as Array<{ path?: string; signedUrl?: string }>)
+      .filter(
+        (item): item is { path: string; signedUrl: string } =>
+          typeof item.path === "string" && typeof item.signedUrl === "string",
+      )
+      .map((item) => [item.path, item.signedUrl]),
   );
+
+  const paymentProofs = (proofRows ?? []).map((proof) => ({
+    id: proof.id,
+    paymentId: proof.payment_id,
+    originalFilename: proof.original_filename,
+    mimeType: proof.mime_type,
+    fileSizeBytes: proof.file_size_bytes,
+    verificationStatus: proof.verification_status,
+    verifiedAt: proof.verified_at,
+    createdAt: proof.created_at,
+    signedUrl: signedProofByPath.get(proof.storage_path) ?? null,
+  }));
 
   const entitlementIds = (entitlements ?? []).map((entry) => entry.id);
   const assetCounts = new Map<string, number>();
@@ -422,12 +430,27 @@ export async function getAdminPaymentProofUrls(proofIds: string[]) {
     .select("id,storage_path")
     .in("id", safeIds);
 
-  const urls = new Map<string, string>();
-  for (const proof of data ?? []) {
-    const { data: signed } = await supabase.storage
-      .from("payment-proofs")
-      .createSignedUrl(proof.storage_path, 10 * 60);
-    if (signed?.signedUrl) urls.set(proof.id, signed.signedUrl);
-  }
-  return urls;
+  const proofRows = data ?? [];
+  const paths = proofRows.map((proof) => proof.storage_path);
+  if (!paths.length) return new Map<string, string>();
+
+  const { data: signedProofs } = await supabase.storage
+    .from("payment-proofs")
+    .createSignedUrls(paths, 10 * 60);
+
+  const signedProofByPath = new Map(
+    ((signedProofs ?? []) as Array<{ path?: string; signedUrl?: string }>)
+      .filter(
+        (item): item is { path: string; signedUrl: string } =>
+          typeof item.path === "string" && typeof item.signedUrl === "string",
+      )
+      .map((item) => [item.path, item.signedUrl]),
+  );
+
+  return new Map(
+    proofRows.flatMap((proof) => {
+      const signedUrl = signedProofByPath.get(proof.storage_path);
+      return signedUrl ? [[proof.id, signedUrl] as const] : [];
+    }),
+  );
 }

@@ -1,6 +1,3 @@
-"use client";
-
-import { useId } from "react";
 import type { CatalogCategory } from "@/lib/catalog/types";
 
 interface CatalogControlsProps {
@@ -10,21 +7,17 @@ interface CatalogControlsProps {
 export function CatalogControls({
   categories = [],
 }: CatalogControlsProps) {
-  const searchId = useId();
-  const categoryId = useId();
-  const sortId = useId();
-
   return (
     <div className="grid gap-3 rounded-[var(--radius-lg)] border border-[var(--probee-border-subtle)] bg-surface-1 p-4 sm:grid-cols-[1.4fr_1fr_1fr]">
       <div>
         <label
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary"
-          htmlFor={searchId}
+          htmlFor="catalog-search"
         >
           Search
         </label>
         <input
-          id={searchId}
+          id="catalog-search"
           type="search"
           placeholder="Search products"
           className="min-h-11 w-full rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
@@ -34,12 +27,12 @@ export function CatalogControls({
       <div>
         <label
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary"
-          htmlFor={categoryId}
+          htmlFor="catalog-category"
         >
           Category
         </label>
         <select
-          id={categoryId}
+          id="catalog-category"
           defaultValue=""
           className="min-h-11 w-full rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none transition-colors focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
         >
@@ -55,12 +48,12 @@ export function CatalogControls({
       <div>
         <label
           className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary"
-          htmlFor={sortId}
+          htmlFor="catalog-sort"
         >
           Sort
         </label>
         <select
-          id={sortId}
+          id="catalog-sort"
           defaultValue="relevance"
           className="min-h-11 w-full rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none transition-colors focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
         >

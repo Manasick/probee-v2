@@ -37,10 +37,10 @@ export function CheckoutCartStatus() {
     <Surface className="p-6">
       <h2 className="text-lg font-semibold">Cart ready</h2>
       <p className="mt-2 text-sm leading-6 text-text-muted">
-        {itemCount} item{itemCount === 1 ? "" : "s"} are ready for the future trusted checkout review.
+        {itemCount} item{itemCount === 1 ? "" : "s"} are ready for secure checkout review.
       </p>
       <p className="mt-3 text-xs leading-5 text-text-muted">
-        Order creation, payments, and final server-side pricing will be implemented separately.
+        Order creation uses the current server-side catalog pricing. Payment is handled separately after the order is created.
       </p>
       <div className="mt-5">
         <Link

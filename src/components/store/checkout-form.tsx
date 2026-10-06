@@ -431,7 +431,7 @@ export function CheckoutForm({
               </span>
             </div>
             <p className="mt-3 text-xs leading-5 text-text-muted">
-              This order is awaiting the payment stage that will be added later.
+              Payment is completed separately from order creation. Continue to the payment step when manual bank transfer is enabled.
             </p>
           </div>
         </Surface>

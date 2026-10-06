@@ -149,7 +149,7 @@ Before deployment:
 5. Verify all three Storage buckets are private and policies are applied.
 6. Configure the chosen transactional email provider, or intentionally keep it disabled.
 7. Run lint, typecheck, tests, and build.
-8. Execute the smoke-test checklist in `tests/README.md` and the deployment checklist below.
+8. Execute the production smoke-test checklist in this README and the deployment checklist below.
 9. Verify the application hostname uses HTTPS.
 10. Verify there are no production secrets in repository files or browser-exposed environment variables.
 

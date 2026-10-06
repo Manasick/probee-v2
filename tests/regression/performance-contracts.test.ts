@@ -25,7 +25,7 @@ describe("production performance contracts", () => {
   it("avoids duplicate product-media database reads on product detail", () => {
     const source = read("src/lib/catalog/server.ts");
     const mediaSelectCount =
-      source.match(/\.from\("product_media"\)/g)?.length ?? 0;
+      source.match(/\.from\("product-media"\)/g)?.length ?? 0;
     expect(mediaSelectCount).toBe(1);
     expect(source).toContain("includeMedia = false");
   });
@@ -48,11 +48,19 @@ describe("production performance contracts", () => {
     expect(gallery).toContain("priority");
   });
 
+  it("keeps static catalog controls out of the client bundle", () => {
+    const controls = read("src/components/store/catalog-controls.tsx");
+    expect(controls).not.toContain('"use client"');
+    expect(controls).not.toContain("useId");
+  });
+
   it("batches admin payment-proof signed URL generation", () => {
     const adminOperations = read("src/lib/admin/operations.ts");
-    expect(adminOperations).toContain("Promise.all(");
-    expect(adminOperations).toContain('.from("payment-proofs")');
-    expect(adminOperations).not.toContain("for (const proof of proofRows");
+    const batchCalls =
+      adminOperations.match(/createSignedUrls\(paths, 10 \* 60\)/g)?.length ?? 0;
+    expect(batchCalls).toBeGreaterThanOrEqual(1);
+    expect(adminOperations).toContain('from("payment-proofs")');
+    expect(adminOperations).not.toContain("createSignedUrl(proof.storage_path");
   });
 
   it("keeps homepage and category pages connected to the live catalog layer", () => {

@@ -415,7 +415,7 @@ export function CartView() {
             ) : null}
 
             <p className="mt-4 text-xs leading-5 text-text-muted">
-              Prices and totals shown here come from the current public catalog. The future checkout step will revalidate them again on the server.
+              Prices and totals shown here come from the current public catalog. Checkout revalidates them again on the server before creating the order.
             </p>
 
             <div className="mt-6 grid gap-3">
