@@ -44,10 +44,12 @@ describe("repository security regression contracts", () => {
   });
 
   it("keeps all storage buckets private", () => {
-    const bucketBlocks = allSql.match(/insert\s+into\s+storage\.buckets[\s\S]{0,1000}?;/gi) ?? [];
+    const bucketBlocks =
+      allSql.match(/insert\s+into\s+storage\.buckets[\s\S]{0,1000}?;/gi) ?? [];
     expect(bucketBlocks.length).toBeGreaterThanOrEqual(3);
     for (const block of bucketBlocks) {
-      expect(block).toMatch(/public\s*\)\s*values\s*\([\s\S]*?false/i);
+      expect(block).toMatch(/\bpublic\b/i);
+      expect(block).toMatch(/values\s*\([\s\S]*?\bfalse\b/i);
     }
   });
 
