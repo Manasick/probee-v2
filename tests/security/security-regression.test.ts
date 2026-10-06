@@ -25,9 +25,11 @@ describe("repository security regression contracts", () => {
 
   it("keeps every SECURITY DEFINER function on an empty search_path", () => {
     const securityDefinerCount = (allSql.match(/\bsecurity\s+definer\b/gi) ?? []).length;
-    const safeSearchPathCount = (allSql.match(/\bset\s+search_path\s*=\s*''/gi) ?? []).length;
+    const guardedSecurityDefiners =
+      (allSql.match(/\bsecurity\s+definer\b[\s\S]{0,10000}?\bset\s+search_path\s*=\s*''/gi) ?? [])
+        .length;
     expect(securityDefinerCount).toBeGreaterThan(0);
-    expect(safeSearchPathCount).toBe(securityDefinerCount);
+    expect(guardedSecurityDefiners).toBe(securityDefinerCount);
   });
 
   it("does not introduce broad true-valued RLS policies", () => {
