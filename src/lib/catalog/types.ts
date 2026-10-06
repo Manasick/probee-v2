@@ -88,6 +88,7 @@ export interface CatalogProduct {
     label?: string;
     description?: string;
   };
+  requiresCustomerEmail?: boolean;
   customerRequirements?: unknown[];
   seo?: {
     title?: string;

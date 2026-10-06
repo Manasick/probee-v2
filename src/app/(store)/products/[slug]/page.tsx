@@ -1,1 +1,321 @@
-import type { Metadata } from "next";\nimport Link from "next/link";\nimport { Container, Surface } from "@/components/ui";\nimport { EmptyState } from "@/components/store/empty-state";\nimport { ProductMediaGallery } from "@/components/store/product-media-gallery";\nimport { ProductPlanSelector } from "@/components/store/product-plan-selector";\nimport { formatDuration, formatProductPrice } from "@/lib/catalog/format";\nimport { getPublicCatalogProductBySlug } from "@/lib/catalog/server";\n\ninterface ProductDetailsPageProps {\n  params: Promise<{ slug: string }>;\n}\n\nexport const revalidate = 300;\n\nexport async function generateMetadata({\n  params,\n}: ProductDetailsPageProps): Promise<Metadata> {\n  const { slug } = await params;\n  const product = await getPublicCatalogProductBySlug(slug);\n\n  return {\n    title: product?.seo?.title ?? product?.name ?? slug + " | ProBee",\n    description:\n      product?.seo?.description ??\n      product?.shortDescription ??\n      "Product details on ProBee.",\n    keywords: product?.seo?.keywords,\n  };\n}\n\nexport default async function ProductDetailsPage({\n  params,\n}: ProductDetailsPageProps) {\n  const { slug } = await params;\n  const product = await getPublicCatalogProductBySlug(slug);\n\n  if (!product) {\n    return (\n      <section className="probee-section">\n        <Container>\n          <nav className="mb-6 text-sm text-text-muted" aria-label="Breadcrumb">\n            <ol className="flex flex-wrap items-center gap-2">\n              <li>\n                <Link className="probee-focus-ring rounded hover:text-text-primary" href="/">\n                  Home\n                </Link>\n              </li>\n              <li aria-hidden="true">/</li>\n              <li>\n                <Link className="probee-focus-ring rounded hover:text-text-primary" href="/products">\n                  Products\n                </Link>\n              </li>\n              <li aria-hidden="true">/</li>\n              <li className="text-text-secondary" aria-current="page">\n                {slug}\n              </li>\n            </ol>\n          </nav>\n\n          <EmptyState\n            title="Product not found"\n            description="This product is not currently published in the public ProBee catalog."\n          />\n        </Container>\n      </section>\n    );\n  }\n\n  const price = formatProductPrice(product);\n\n  return (\n    <section className="probee-section">\n      <Container>\n        <nav className="mb-8 text-sm text-text-muted" aria-label="Breadcrumb">\n          <ol className="flex flex-wrap items-center gap-2">\n            <li>\n              <Link className="probee-focus-ring rounded hover:text-text-primary" href="/">\n                Home\n              </Link>\n            </li>\n            <li aria-hidden="true">/</li>\n            <li>\n              <Link className="probee-focus-ring rounded hover:text-text-primary" href="/products">\n                Products\n              </Link>\n            </li>\n            <li aria-hidden="true">/</li>\n            <li className="text-text-secondary" aria-current="page">\n              {product.name}\n            </li>\n          </ol>\n        </nav>\n\n        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">\n          <ProductMediaGallery\n            productName={product.name}\n            coverUrl={product.coverUrl}\n            media={product.media}\n          />\n\n          <div>\n            {product.category ? <p className="probee-label">{product.category.name}</p> : null}\n            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">{product.name}</h1>\n            {product.shortDescription ? (\n              <p className="mt-4 text-base leading-7 text-text-secondary">{product.shortDescription}</p>\n            ) : null}\n\n            <div className="mt-6 flex flex-wrap items-center gap-3">\n              {price ? <span className="text-lg font-semibold text-gold">{price}</span> : null}\n              {product.featured ? (\n                <span className="rounded-full border border-[var(--probee-border-default)] bg-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-gold">\n                  Featured\n                </span>\n              ) : null}\n            </div>\n\n            <div className="mt-8">\n              <h2 className="text-lg font-semibold">Plans & options</h2>\n              <p className="mt-2 text-sm text-text-muted">Choose from the options configured for this product.</p>\n              <div className="mt-4"><ProductPlanSelector plans={product.plans} /></div>\n            </div>\n          </div>\n        </div>\n\n        {product.fullDescription ? (\n          <section className="mt-14 border-t border-[var(--probee-border-subtle)] pt-10">\n            <h2 className="text-2xl font-semibold">About this product</h2>\n            <p className="mt-4 max-w-3xl whitespace-pre-line text-base leading-7 text-text-secondary">{product.fullDescription}</p>\n          </section>\n        ) : null}\n\n        {product.features?.length ? (\n          <section className="mt-12">\n            <h2 className="text-2xl font-semibold">Features</h2>\n            <div className="mt-5 grid gap-3 sm:grid-cols-2">\n              {product.features.map((feature, index) => (\n                <Surface key={feature + index} className="p-4 text-sm text-text-secondary">{feature}</Surface>\n              ))}\n            </div>\n          </section>\n        ) : null}\n\n        {product.packageInclusions?.length ? (\n          <section className="mt-12">\n            <h2 className="text-2xl font-semibold">Package inclusions</h2>\n            <div className="mt-5 grid gap-3 sm:grid-cols-2">\n              {product.packageInclusions.map((item, index) => (\n                <Surface key={item + index} className="p-4 text-sm text-text-secondary">{item}</Surface>\n              ))}\n            </div>\n          </section>\n        ) : null}\n\n        {product.delivery ? (\n          <section className="mt-12">\n            <h2 className="text-2xl font-semibold">Delivery</h2>\n            <Surface className="mt-5 p-5">\n              {product.delivery.label ? <p className="font-medium">{product.delivery.label}</p> : null}\n              {product.delivery.type ? <p className="mt-1 text-sm text-text-muted">Method: {product.delivery.type}</p> : null}\n              {product.delivery.description ? <p className="mt-3 text-sm leading-6 text-text-secondary">{product.delivery.description}</p> : null}\n            </Surface>\n          </section>\n        ) : null}\n\n        {product.customerRequirements?.length ? (\n          <section className="mt-12">\n            <h2 className="text-2xl font-semibold">Customer requirements</h2>\n            <div className="mt-5 grid gap-3">\n              {product.customerRequirements.map((requirement, index) => (\n                <p key={String(requirement) + index} className="text-sm leading-6 text-text-secondary">{String(requirement)}</p>\n              ))}\n            </div>\n          </section>\n        ) : null}\n\n        {product.plans.some((plan) => plan.warrantyPeriod && plan.warrantyUnit) ? (\n          <section className="mt-12">\n            <h2 className="text-2xl font-semibold">Warranty</h2>\n            <div className="mt-5 grid gap-3 sm:grid-cols-2">\n              {product.plans\n                .filter((plan) => plan.warrantyPeriod && plan.warrantyUnit)\n                .map((plan) => (\n                  <Surface key={plan.id} className="p-5">\n                    <p className="font-medium">{plan.name}</p>\n                    <p className="mt-2 text-sm text-text-secondary">{formatDuration(plan.warrantyPeriod, plan.warrantyUnit)}</p>\n                  </Surface>\n                ))}\n            </div>\n          </section>\n        ) : null}\n\n        <section className="mt-12">\n          <h2 className="text-2xl font-semibold">Reviews</h2>\n          <Surface className="mt-5 p-5">\n            <p className="text-sm text-text-muted">Reviews will appear here when the moderation and verified-purchase layer is enabled.</p>\n          </Surface>\n        </section>\n      </Container>\n    </section>\n  );\n}\n
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Container, Surface } from "@/components/ui";
+import { EmptyState } from "@/components/store/empty-state";
+import { ProductMediaGallery } from "@/components/store/product-media-gallery";
+import { ProductPlanSelector } from "@/components/store/product-plan-selector";
+import { formatDuration, formatProductPrice } from "@/lib/catalog/format";
+import { getPublicCatalogProductBySlug } from "@/lib/catalog/server";
+
+interface ProductDetailsPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export const revalidate = 300;
+
+export async function generateMetadata({
+  params,
+}: ProductDetailsPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getPublicCatalogProductBySlug(slug);
+
+  return {
+    title: product?.seo?.title ?? product?.name ?? `${slug} | ProBee`,
+    description:
+      product?.seo?.description ??
+      product?.shortDescription ??
+      "Product details on ProBee.",
+    keywords: product?.seo?.keywords,
+  };
+}
+
+function formatDynamicValue(value: unknown): string | null {
+  if (typeof value === "string") {
+    return value.trim() || null;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized === undefined ? null : serialized;
+  } catch {
+    return null;
+  }
+}
+
+export default async function ProductDetailsPage({
+  params,
+}: ProductDetailsPageProps) {
+  const { slug } = await params;
+  const product = await getPublicCatalogProductBySlug(slug);
+
+  if (!product) {
+    return (
+      <section className="probee-section">
+        <Container>
+          <nav className="mb-6 text-sm text-text-muted" aria-label="Breadcrumb">
+            <ol className="flex flex-wrap items-center gap-2">
+              <li>
+                <Link
+                  className="probee-focus-ring rounded hover:text-text-primary"
+                  href="/"
+                >
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li>
+                <Link
+                  className="probee-focus-ring rounded hover:text-text-primary"
+                  href="/products"
+                >
+                  Products
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li className="text-text-secondary" aria-current="page">
+                {slug}
+              </li>
+            </ol>
+          </nav>
+
+          <EmptyState
+            title="Product not found"
+            description="This product is not currently published in the public ProBee catalog."
+          />
+        </Container>
+      </section>
+    );
+  }
+
+  const price = formatProductPrice(product);
+  const purchasablePlans = product.plans.filter(
+    (plan) => plan.active !== false,
+  );
+  const productAttributes = Object.entries(product.customAttributes ?? {}).filter(
+    ([, value]) => formatDynamicValue(value) !== null,
+  );
+
+  return (
+    <section className="probee-section">
+      <Container>
+        <nav className="mb-8 text-sm text-text-muted" aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li>
+              <Link
+                className="probee-focus-ring rounded hover:text-text-primary"
+                href="/"
+              >
+                Home
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li>
+              <Link
+                className="probee-focus-ring rounded hover:text-text-primary"
+                href="/products"
+              >
+                Products
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li className="text-text-secondary" aria-current="page">
+              {product.name}
+            </li>
+          </ol>
+        </nav>
+
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+          <ProductMediaGallery
+            productName={product.name}
+            coverUrl={product.coverUrl}
+            media={product.media}
+          />
+
+          <div>
+            {product.category ? (
+              <p className="probee-label">{product.category.name}</p>
+            ) : null}
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">
+              {product.name}
+            </h1>
+            {product.shortDescription ? (
+              <p className="mt-4 text-base leading-7 text-text-secondary">
+                {product.shortDescription}
+              </p>
+            ) : null}
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {price ? (
+                <span className="text-lg font-semibold text-gold">{price}</span>
+              ) : null}
+              {product.featured ? (
+                <span className="rounded-full border border-[var(--probee-border-default)] bg-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-gold">
+                  Featured
+                </span>
+              ) : null}
+              {product.requiresCustomerEmail ? (
+                <span className="rounded-full border border-[var(--probee-border-default)] bg-surface-2 px-3 py-1 text-xs font-semibold text-text-secondary">
+                  Customer email required
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold">Choose your plan</h2>
+              <p className="mt-2 text-sm text-text-muted">
+                Options shown here are loaded from the active catalog configuration.
+              </p>
+              <div className="mt-4">
+                <ProductPlanSelector
+                  productId={product.id}
+                  plans={purchasablePlans}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {product.fullDescription ? (
+          <section className="mt-14 border-t border-[var(--probee-border-subtle)] pt-10">
+            <h2 className="text-2xl font-semibold">About this product</h2>
+            <p className="mt-4 max-w-3xl whitespace-pre-line text-base leading-7 text-text-secondary">
+              {product.fullDescription}
+            </p>
+          </section>
+        ) : null}
+
+        {product.features?.length ? (
+          <section className="mt-12">
+            <h2 className="text-2xl font-semibold">Features</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {product.features.map((feature, index) => (
+                <Surface
+                  key={feature + index}
+                  className="p-4 text-sm text-text-secondary"
+                >
+                  {feature}
+                </Surface>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {product.packageInclusions?.length ? (
+          <section className="mt-12">
+            <h2 className="text-2xl font-semibold">Package inclusions</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {product.packageInclusions.map((item, index) => (
+                <Surface
+                  key={item + index}
+                  className="p-4 text-sm text-text-secondary"
+                >
+                  {item}
+                </Surface>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {product.delivery ? (
+          <section className="mt-12">
+            <h2 className="text-2xl font-semibold">Delivery</h2>
+            <Surface className="mt-5 p-5">
+              {product.delivery.label ? (
+                <p className="font-medium">{product.delivery.label}</p>
+              ) : null}
+              {product.delivery.type ? (
+                <p className="mt-1 text-sm text-text-muted">
+                  Method: {product.delivery.type}
+                </p>
+              ) : null}
+              {product.delivery.description ? (
+                <p className="mt-3 text-sm leading-6 text-text-secondary">
+                  {product.delivery.description}
+                </p>
+              ) : null}
+            </Surface>
+          </section>
+        ) : null}
+
+        {product.customerRequirements?.length ? (
+          <section className="mt-12">
+            <h2 className="text-2xl font-semibold">Customer requirements</h2>
+            <div className="mt-5 grid gap-3">
+              {product.customerRequirements.map((requirement, index) => {
+                const value = formatDynamicValue(requirement);
+
+                return value ? (
+                  <p
+                    key={value + index}
+                    className="text-sm leading-6 text-text-secondary"
+                  >
+                    {value}
+                  </p>
+                ) : null;
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {productAttributes.length ? (
+          <section className="mt-12">
+            <h2 className="text-2xl font-semibold">Product details</h2>
+            <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+              {productAttributes.map(([key, value]) => {
+                const formattedValue = formatDynamicValue(value);
+
+                return formattedValue ? (
+                  <Surface key={key} className="p-4">
+                    <dt className="text-xs uppercase tracking-[0.12em] text-text-muted">
+                      {key}
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-text-secondary">
+                      {formattedValue}
+                    </dd>
+                  </Surface>
+                ) : null;
+              })}
+            </dl>
+          </section>
+        ) : null}
+
+        {product.plans.some(
+          (plan) => plan.warrantyPeriod && plan.warrantyUnit,
+        ) ? (
+          <section className="mt-12">
+            <h2 className="text-2xl font-semibold">Warranty</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {product.plans
+                .filter((plan) => plan.warrantyPeriod && plan.warrantyUnit)
+                .map((plan) => (
+                  <Surface key={plan.id} className="p-5">
+                    <p className="font-medium">{plan.name}</p>
+                    <p className="mt-2 text-sm text-text-secondary">
+                      {formatDuration(plan.warrantyPeriod, plan.warrantyUnit)}
+                    </p>
+                  </Surface>
+                ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="mt-12">
+          <h2 className="text-2xl font-semibold">Reviews</h2>
+          <Surface className="mt-5 p-5">
+            <p className="text-sm text-text-muted">
+              Reviews will appear here when the moderation and verified-purchase layer is enabled.
+            </p>
+          </Surface>
+        </section>
+      </Container>
+    </section>
+  );
+}

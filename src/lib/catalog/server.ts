@@ -195,6 +195,7 @@ function mapBaseProduct(row: ProductRow): CatalogProduct {
             label: row.delivery_type ?? undefined,
           }
         : undefined,
+    requiresCustomerEmail: row.requires_customer_email,
     customerRequirements: stringArray(row.customer_requirements),
     seo: {
       title: row.seo_title ?? undefined,
@@ -366,6 +367,36 @@ export async function getPublicCatalogProducts(
   );
 }
 
+export async function getPublicCatalogProductsByIds(
+  productIds: string[],
+): Promise<CatalogProduct[]> {
+  const uniqueIds = Array.from(new Set(productIds.filter(Boolean))).slice(0, 50);
+
+  if (uniqueIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id,name,slug,short_description,full_description,cover_url,product_type,is_active,is_published,is_featured,sort_order,warranty_duration,warranty_unit,delivery_type,delivery_details,requires_customer_email,customer_requirements,custom_attributes,seo_title,seo_description,seo_keywords",
+    )
+    .in("id", uniqueIds)
+    .eq("is_active", true)
+    .eq("is_published", true);
+
+  if (error) {
+    return [];
+  }
+
+  return buildProductMap(
+    supabase,
+    (data ?? []) as ProductRow[],
+  );
+}
+
 export async function getPublicCatalogProductBySlug(
   slug: string,
 ): Promise<CatalogProduct | null> {
@@ -431,7 +462,9 @@ export async function getPublicCatalogProductBySlug(
   );
   product.media = await signMedia(supabase, mediaRows ?? []);
 
-  const primary = product.media?.find((media) => media.isPrimary) ?? product.media?.[0];
+  const primary =
+    product.media?.find((media) => media.isPrimary) ?? product.media?.[0];
+
   if (primary) {
     product.coverUrl = primary.url;
   }

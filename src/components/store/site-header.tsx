@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { BrandMark } from "@/components/ui";
+import { useCart } from "@/lib/cart/provider";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -23,12 +24,16 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { itemCount } = useCart();
 
   function closeMenu() {
     setMenuOpen(false);
   }
 
   const accountLabel = accountEmail ? "Account" : "Sign in";
+  const cartLabel = itemCount === 0
+    ? "Shopping cart"
+    : `Shopping cart, ${itemCount} item${itemCount === 1 ? "" : "s"}`;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--probee-border-subtle)] bg-background/90 backdrop-blur-xl">
@@ -81,8 +86,8 @@ export function SiteHeader({
 
             <Link
               href="/cart"
-              className="probee-focus-ring rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary"
-              aria-label="Shopping cart"
+              className="probee-focus-ring relative rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary"
+              aria-label={cartLabel}
             >
               <svg
                 aria-hidden="true"
@@ -96,6 +101,14 @@ export function SiteHeader({
                 <circle cx="10" cy="19" r="1.2" />
                 <circle cx="17" cy="19" r="1.2" />
               </svg>
+              {itemCount > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full border border-background bg-gold px-1 text-[0.625rem] font-bold leading-4 text-text-inverse"
+                >
+                  {itemCount > 99 ? "99+" : itemCount}
+                </span>
+              ) : null}
             </Link>
 
             <Link
@@ -204,6 +217,17 @@ export function SiteHeader({
                     Activate
                   </span>
                 ) : null}
+              </Link>
+
+              <Link
+                href="/cart"
+                onClick={closeMenu}
+                className="probee-focus-ring flex items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+              >
+                <span>Cart</span>
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-text-muted">
+                  {itemCount}
+                </span>
               </Link>
             </div>
           </nav>
