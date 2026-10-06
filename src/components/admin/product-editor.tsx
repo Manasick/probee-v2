@@ -229,18 +229,51 @@ export function ProductEditor({
     key: "features" | "packageInclusions",
     index: number,
   ) {
-    const list = [...product[key]] as AdminProductInput["features"];
+    if (key === "features") {
+      const list = [...product.features];
+      list[index] = { ...list[index], active: !list[index].active };
+      updateProduct("features", list);
+      return;
+    }
+
+    const list = [...product.packageInclusions];
     list[index] = { ...list[index], active: !list[index].active };
-    updateProduct(key, list);
+    updateProduct("packageInclusions", list);
   }
 
   function removeTextItem(
     key: "customerRequirements" | "seoKeywords" | "features" | "packageInclusions",
     index: number,
   ) {
+    if (key === "features") {
+      updateProduct(
+        "features",
+        product.features.filter((_, itemIndex) => itemIndex !== index),
+      );
+      return;
+    }
+
+    if (key === "packageInclusions") {
+      updateProduct(
+        "packageInclusions",
+        product.packageInclusions.filter((_, itemIndex) => itemIndex !== index),
+      );
+      return;
+    }
+
+    if (key === "customerRequirements") {
+      updateProduct(
+        "customerRequirements",
+        product.customerRequirements.filter(
+          (_, itemIndex) => itemIndex !== index,
+        ),
+      );
+      return;
+    }
+
     updateProduct(
-      key,
-      product[key].filter((_, itemIndex) => itemIndex !== index),
+      "seoKeywords",
+      product.seoKeywords.filter((_, itemIndex) => itemIndex !== index),
     );
   }
 
