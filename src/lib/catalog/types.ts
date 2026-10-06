@@ -11,6 +11,7 @@ export type ProductMediaType = "image" | "video" | "other";
 export interface ProductMedia {
   id: string;
   url: string;
+  storagePath?: string;
   alt?: string;
   title?: string;
   caption?: string;
@@ -18,6 +19,14 @@ export interface ProductMedia {
   sortOrder?: number;
   isPrimary?: boolean;
   active?: boolean;
+}
+
+export interface AdminProductMedia extends ProductMedia {
+  storagePath: string;
+  active: boolean;
+  sortOrder: number;
+  isPrimary: boolean;
+  mimeType: string;
 }
 
 export interface ProductPlan {
@@ -159,6 +168,7 @@ export interface AdminProductInput {
   features: AdminFeatureItem[];
   packageInclusions: AdminFeatureItem[];
   plans: AdminProductPlanInput[];
+  media: AdminProductMedia[];
 }
 
 export interface AdminProductListItem {
