@@ -177,6 +177,7 @@ end;
 $function$;
 
 revoke all on function public.fulfill_digital_order_item(uuid, text) from public;
+revoke execute on function public.fulfill_digital_order_item(uuid, text) from anon;
 grant execute on function public.fulfill_digital_order_item(uuid, text) to authenticated;
 
 
@@ -242,4 +243,5 @@ end;
 $function$;
 
 revoke all on function public.set_digital_entitlement_status(uuid, text) from public;
+revoke execute on function public.set_digital_entitlement_status(uuid, text) from anon;
 grant execute on function public.set_digital_entitlement_status(uuid, text) to authenticated;
