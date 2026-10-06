@@ -34,7 +34,6 @@ function statusTone(status: string): "neutral" | "success" | "warning" | "danger
 }
 
 export default async function AdminDashboardPage() {
-  try {
     const { stats, recentOrders, recentPayments, pendingReviews, recentFulfillments } =
       await getAdminDashboardData();
 
@@ -208,19 +207,4 @@ export default async function AdminDashboardPage() {
         </Container>
       </section>
     );
-  } catch (error) {
-    return (
-      <section className="probee-section">
-        <Container>
-          <div>
-            <p className="probee-label">Dashboard</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">ProBee operations overview</h1>
-          </div>
-          <AdminErrorState
-            message={error instanceof Error ? error.message : "The dashboard could not be loaded."}
-          />
-        </Container>
-      </section>
-    );
-  }
 }
