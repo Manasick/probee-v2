@@ -1,3 +1,4 @@
+import { AdminErrorState } from "@/components/admin/admin-error-state";
 import { ProductEditor } from "@/components/admin/product-editor";
 import { getAdminProductEditorData } from "@/lib/admin/catalog";
 
