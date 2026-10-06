@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "./format";
 import type {
@@ -82,35 +83,35 @@ async function signMedia(
     is_primary: boolean;
   }>,
 ): Promise<ProductMedia[]> {
+  const sortedRows = [...rows].sort(
+    (a, b) =>
+      a.sort_order - b.sort_order ||
+      Number(b.is_primary) - Number(a.is_primary),
+  );
+
   const results = await Promise.all(
-    rows
-      .sort(
-        (a, b) =>
-          a.sort_order - b.sort_order ||
-          Number(b.is_primary) - Number(a.is_primary),
-      )
-      .map(async (row) => {
-        const { data } = await supabase.storage
-          .from("product-media")
-          .createSignedUrl(row.media_url, 60 * 60 * 24);
+    sortedRows.map(async (row) => {
+      const { data } = await supabase.storage
+        .from("product-media")
+        .createSignedUrl(row.media_url, 60 * 60 * 24);
 
-        if (!data?.signedUrl) {
-          return null;
-        }
+      if (!data?.signedUrl) {
+        return null;
+      }
 
-        return {
-          id: row.id,
-          url: data.signedUrl,
-          storagePath: row.media_url,
-          alt: row.alt_text ?? undefined,
-          title: row.title ?? undefined,
-          caption: row.caption ?? undefined,
-          kind: row.media_type as ProductMedia["kind"],
-          sortOrder: row.sort_order,
-          isPrimary: row.is_primary,
-          active: true,
-        } satisfies ProductMedia;
-      }),
+      return {
+        id: row.id,
+        url: data.signedUrl,
+        storagePath: row.media_url,
+        alt: row.alt_text ?? undefined,
+        title: row.title ?? undefined,
+        caption: row.caption ?? undefined,
+        kind: row.media_type as ProductMedia["kind"],
+        sortOrder: row.sort_order,
+        isPrimary: row.is_primary,
+        active: true,
+      } satisfies ProductMedia;
+    }),
   );
 
   return results.filter((item): item is ProductMedia => Boolean(item));
@@ -213,6 +214,7 @@ function mapBaseProduct(row: ProductRow): CatalogProduct {
 async function buildProductMap(
   supabase: Awaited<ReturnType<typeof createClient>>,
   products: ProductRow[],
+  includeMedia = false,
 ): Promise<CatalogProduct[]> {
   if (products.length === 0) {
     return [];
@@ -279,26 +281,29 @@ async function buildProductMap(
     mediaMap.set(row.product_id, list);
   }
 
-  const primaryPaths = products
-    .map((product) => {
-      const rows = mediaMap.get(product.id) ?? [];
-      const primary =
-        rows.find((row) => row.is_primary) ??
-        rows.sort((a, b) => a.sort_order - b.sort_order)[0];
-
-      return primary?.media_url;
-    })
-    .filter((path): path is string => Boolean(path));
-
-  const signedPrimaryEntries = await Promise.all(
-    primaryPaths.map(async (path) => {
-      const { data } = await supabase.storage
-        .from("product-media")
-        .createSignedUrl(path, 60 * 60 * 24);
-
-      return [path, data?.signedUrl ?? null] as const;
-    }),
+  const primaryPaths = Array.from(
+    new Set(
+      products
+        .map((product) => {
+          const rows = mediaMap.get(product.id) ?? [];
+          const primary = rows.find((row) => row.is_primary) ?? rows[0];
+          return primary?.media_url;
+        })
+        .filter((path): path is string => Boolean(path)),
+    ),
   );
+
+  const signedPrimaryEntries = includeMedia
+    ? []
+    : await Promise.all(
+        primaryPaths.map(async (path) => {
+          const { data } = await supabase.storage
+            .from("product-media")
+            .createSignedUrl(path, 60 * 60 * 24);
+
+          return [path, data?.signedUrl ?? null] as const;
+        }),
+      );
 
   const signedPrimaryMap = new Map(
     signedPrimaryEntries.filter(
@@ -313,10 +318,20 @@ async function buildProductMap(
 
     product.category = categoryMap.get(row.id);
     product.plans = planMap.get(row.id) ?? [];
-    product.coverUrl =
-      signedPrimaryMap.get(firstMedia?.media_url ?? "") ??
-      row.cover_url ??
-      undefined;
+
+    if (includeMedia) {
+      product.media = await signMedia(supabase, media);
+      product.coverUrl =
+        product.media.find((item) => item.isPrimary)?.url ??
+        product.media[0]?.url ??
+        row.cover_url ??
+        undefined;
+    } else {
+      product.coverUrl =
+        signedPrimaryMap.get(firstMedia?.media_url ?? "") ??
+        row.cover_url ??
+        undefined;
+    }
 
     return product;
   });
@@ -397,9 +412,9 @@ export async function getPublicCatalogProductsByIds(
   );
 }
 
-export async function getPublicCatalogProductBySlug(
+const getPublicCatalogProductBySlugUncached = async (
   slug: string,
-): Promise<CatalogProduct | null> {
+): Promise<CatalogProduct | null> => {
   const supabase = await createClient();
 
   const { data: row, error: productError } = await supabase
@@ -419,6 +434,7 @@ export async function getPublicCatalogProductBySlug(
   const [product] = await buildProductMap(
     supabase,
     [row as ProductRow],
+    true,
   );
 
   if (!product) {
@@ -428,7 +444,6 @@ export async function getPublicCatalogProductBySlug(
   const [
     { data: featureRows, error: featureError },
     { data: inclusionRows, error: inclusionError },
-    { data: mediaRows, error: mediaError },
   ] = await Promise.all([
     supabase
       .from("product_features")
@@ -442,17 +457,9 @@ export async function getPublicCatalogProductBySlug(
       .eq("product_id", row.id)
       .eq("is_active", true)
       .order("sort_order", { ascending: true }),
-    supabase
-      .from("product_media")
-      .select(
-        "id,media_url,media_type,alt_text,title,caption,sort_order,is_primary,is_active",
-      )
-      .eq("product_id", row.id)
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true }),
   ]);
 
-  if (featureError || inclusionError || mediaError) {
+  if (featureError || inclusionError) {
     return product;
   }
 
@@ -460,17 +467,13 @@ export async function getPublicCatalogProductBySlug(
   product.packageInclusions = (inclusionRows ?? []).map(
     (item) => item.inclusion_text,
   );
-  product.media = await signMedia(supabase, mediaRows ?? []);
-
-  const primary =
-    product.media?.find((media) => media.isPrimary) ?? product.media?.[0];
-
-  if (primary) {
-    product.coverUrl = primary.url;
-  }
 
   return product;
-}
+};
+
+export const getPublicCatalogProductBySlug = cache(
+  getPublicCatalogProductBySlugUncached,
+);
 
 export function getCatalogPriceLabel(product: CatalogProduct): string | null {
   const activePlans = product.plans.filter(
