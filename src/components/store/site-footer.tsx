@@ -50,7 +50,7 @@ export function SiteFooter() {
               <Link className="probee-focus-ring rounded text-text-secondary hover:text-text-primary" href="/account">
                 Account
               </Link>
-              <Link className="probee-focus-ring rounded text-text-secondary hover:text-text-primary" href="/orders">
+              <Link className="probee-focus-ring rounded text-text-secondary hover:text-text-primary" href="/account/orders">
                 Orders
               </Link>
             </div>
