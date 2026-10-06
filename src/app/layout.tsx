@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/auth/urls";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ProBee",
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: "ProBee",
+    template: "%s | ProBee",
+  },
   description: "ProBee — Premium Digital Store",
 };
 
