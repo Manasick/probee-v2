@@ -514,8 +514,7 @@ $$;
 revoke all on function public.get_my_digital_entitlements()
 from public, anon, authenticated;
 grant execute on function public.get_my_digital_entitlements()
-end;
-$$;
+to authenticated;
 
 revoke all on function public.submit_manual_bank_payment(text, text, text, text, text, bigint, text)
 from public, anon, authenticated;
