@@ -434,8 +434,14 @@ export default async function AccountOrderDetailsPage({
               <p className="probee-label">Digital access</p>
               <h2 className="mt-2 text-xl font-semibold">Fulfillment</h2>
               <p className="mt-3 text-sm leading-6 text-text-muted">
-                Digital access will appear here after fulfillment. Delivery and download controls are intentionally not implemented in STEP 13.
+                Fulfilled digital access, customer-safe instructions, and private file delivery are available in your digital products area.
               </p>
+              <Link
+                href="/account/digital-products"
+                className="probee-focus-ring mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover"
+              >
+                Open digital products
+              </Link>
             </Surface>
           </div>
         </div>

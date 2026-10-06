@@ -94,6 +94,24 @@ export default async function AccountPage({
           <AccountNav />
         </div>
 
+        <Surface className="mt-6 border-[var(--probee-border-default)] bg-surface-1 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="probee-label">Digital access</p>
+              <h2 className="mt-2 text-lg font-semibold">Fulfilled products</h2>
+              <p className="mt-1 text-sm leading-6 text-text-muted">
+                View customer-safe digital access and temporary file delivery.
+              </p>
+            </div>
+            <Link
+              href="/account/digital-products"
+              className="probee-focus-ring inline-flex min-h-11 items-center justify-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover"
+            >
+              Digital products
+            </Link>
+          </div>
+        </Surface>
+
         {passwordUpdated ? (
           <Surface className="mt-8 border-[var(--probee-border-default)]" role="status">
             <p className="text-sm font-semibold text-gold">

@@ -9,6 +9,7 @@ export function AccountNav() {
       {[
         { label: "Overview", href: "/account" },
         { label: "Orders", href: "/account/orders" },
+        { label: "Digital products", href: "/account/digital-products" },
         { label: "Profile", href: "/account#profile" },
         { label: "Security", href: "/account#security" },
       ].map((item) => (
