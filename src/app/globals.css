@@ -2,15 +2,221 @@
 
 :root {
   color-scheme: dark;
+
+  --probee-background: #080808;
+  --probee-surface-1: #101010;
+  --probee-surface-2: #151515;
+  --probee-surface-3: #1b1b1b;
+
+  --probee-text-primary: #f3f0e8;
+  --probee-text-secondary: #c4beb2;
+  --probee-text-muted: #8d877c;
+  --probee-text-inverse: #0a0a0a;
+
+  --probee-border-subtle: rgba(255, 255, 255, 0.08);
+  --probee-border-default: rgba(255, 255, 255, 0.12);
+  --probee-border-strong: rgba(255, 255, 255, 0.18);
+
+  --probee-gold: #b9a06a;
+  --probee-gold-hover: #ccb57f;
+  --probee-gold-soft: rgba(185, 160, 106, 0.14);
+  --probee-gold-muted: rgba(185, 160, 106, 0.08);
+
+  --probee-focus-ring: rgba(204, 181, 127, 0.42);
+
+  --probee-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --probee-shadow-md: 0 16px 40px rgba(0, 0, 0, 0.24);
+  --probee-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.3);
+
+  --probee-radius-sm: 0.625rem;
+  --probee-radius-md: 0.875rem;
+  --probee-radius-lg: 1.125rem;
+  --probee-radius-xl: 1.5rem;
+
+  --probee-space-1: 0.25rem;
+  --probee-space-2: 0.5rem;
+  --probee-space-3: 0.75rem;
+  --probee-space-4: 1rem;
+  --probee-space-5: 1.25rem;
+  --probee-space-6: 1.5rem;
+  --probee-space-8: 2rem;
+  --probee-space-10: 2.5rem;
+  --probee-space-12: 3rem;
+  --probee-space-16: 4rem;
+  --probee-space-20: 5rem;
+  --probee-space-24: 6rem;
+
+  --probee-motion-fast: 150ms;
+  --probee-motion-standard: 220ms;
+  --probee-motion-slow: 320ms;
+}
+
+@theme inline {
+  --color-background: var(--probee-background);
+  --color-surface-1: var(--probee-surface-1);
+  --color-surface-2: var(--probee-surface-2);
+  --color-surface-3: var(--probee-surface-3);
+  --color-text-primary: var(--probee-text-primary);
+  --color-text-secondary: var(--probee-text-secondary);
+  --color-text-muted: var(--probee-text-muted);
+  --color-text-inverse: var(--probee-text-inverse);
+  --color-gold: var(--probee-gold);
+  --color-gold-hover: var(--probee-gold-hover);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html {
-  background: #080808;
+  min-height: 100%;
+  scroll-behavior: smooth;
+  background: var(--probee-background);
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background: #080808;
-  color: #f5f5f5;
+  overflow-x: hidden;
+  background: var(--probee-background);
+  color: var(--probee-text-primary);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: var(--probee-text-primary);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--probee-gold-soft);
+  color: var(--probee-text-primary);
+}
+
+::placeholder {
+  color: var(--probee-text-muted);
+}
+
+.probee-container {
+  width: min(100%, 80rem);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.probee-section {
+  padding-block: clamp(4rem, 9vw, 7rem);
+}
+
+.probee-label {
+  color: var(--probee-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.probee-caption {
+  color: var(--probee-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.probee-nav {
+  color: var(--probee-text-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.probee-focus-ring:focus-visible {
+  outline: 2px solid var(--probee-focus-ring);
+  outline-offset: 2px;
+}
+
+.probee-glass {
+  border: 1px solid var(--probee-border-subtle);
+  background: color-mix(in srgb, var(--probee-surface-2) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.probee-interactive {
+  transition:
+    border-color var(--probee-motion-standard) ease,
+    background-color var(--probee-motion-standard) ease,
+    color var(--probee-motion-standard) ease,
+    transform var(--probee-motion-standard) ease,
+    box-shadow var(--probee-motion-standard) ease;
+}
+
+.probee-interactive:hover {
+  transform: translateY(-1px);
+}
+
+@keyframes probee-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.motion-fade-in {
+  animation: probee-fade-in var(--probee-motion-slow) ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .probee-interactive:hover {
+    transform: none;
+  }
 }
