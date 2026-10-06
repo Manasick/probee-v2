@@ -61,8 +61,14 @@ function CopyField({
   }
 
   async function copyValue() {
+    const text = value;
+
+    if (!text) {
+      return;
+    }
+
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(text);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
