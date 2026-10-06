@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Container } from "@/components/ui";
 import { ProductGrid } from "@/components/store/product-grid";
+import { getPublicCatalogCategoryBySlug } from "@/lib/catalog/server";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -18,11 +20,21 @@ export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const name = formatSlug(slug);
+  const data = await getPublicCatalogCategoryBySlug(slug);
+
+  if (!data) {
+    return {
+      title: "Category not found | ProBee",
+      description: "The requested ProBee category could not be found.",
+    };
+  }
 
   return {
-    title: `${name} | ProBee`,
-    description: `${name} products on ProBee.`,
+    title: data.category.seoTitle ?? data.category.name + " | ProBee",
+    description:
+      data.category.seoDescription ??
+      data.category.description ??
+      data.category.name + " products on ProBee.",
   };
 }
 
@@ -30,7 +42,11 @@ export default async function CategoryPage({
   params,
 }: CategoryPageProps) {
   const { slug } = await params;
-  const name = formatSlug(slug);
+  const data = await getPublicCatalogCategoryBySlug(slug);
+
+  if (!data) {
+    notFound();
+  }
 
   return (
     <section className="probee-section">
@@ -38,15 +54,16 @@ export default async function CategoryPage({
         <div className="max-w-3xl">
           <p className="probee-label">Category</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">
-            {name || "Category"}
+            {data.category.name}
           </h1>
           <p className="mt-4 text-base leading-7 text-text-secondary">
-            Category details and published products will be loaded from the catalog layer.
+            {data.category.description ??
+              "Browse the published products available in this active category."}
           </p>
         </div>
 
         <div className="mt-10">
-          <ProductGrid products={[]} />
+          <ProductGrid products={data.products} />
         </div>
       </Container>
     </section>

@@ -222,23 +222,25 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     throw new Error("The payment proof metadata could not be loaded.");
   }
 
-  const paymentProofs = [];
-  for (const proof of proofRows ?? []) {
-    const { data: signed } = await supabase.storage
-      .from("payment-proofs")
-      .createSignedUrl(proof.storage_path, 10 * 60);
-    paymentProofs.push({
-      id: proof.id,
-      paymentId: proof.payment_id,
-      originalFilename: proof.original_filename,
-      mimeType: proof.mime_type,
-      fileSizeBytes: proof.file_size_bytes,
-      verificationStatus: proof.verification_status,
-      verifiedAt: proof.verified_at,
-      createdAt: proof.created_at,
-      signedUrl: signed?.signedUrl ?? null,
-    });
-  }
+  const paymentProofs = await Promise.all(
+    (proofRows ?? []).map(async (proof) => {
+      const { data: signed } = await supabase.storage
+        .from("payment-proofs")
+        .createSignedUrl(proof.storage_path, 10 * 60);
+
+      return {
+        id: proof.id,
+        paymentId: proof.payment_id,
+        originalFilename: proof.original_filename,
+        mimeType: proof.mime_type,
+        fileSizeBytes: proof.file_size_bytes,
+        verificationStatus: proof.verification_status,
+        verifiedAt: proof.verified_at,
+        createdAt: proof.created_at,
+        signedUrl: signed?.signedUrl ?? null,
+      };
+    }),
+  );
 
   const entitlementIds = (entitlements ?? []).map((entry) => entry.id);
   const assetCounts = new Map<string, number>();

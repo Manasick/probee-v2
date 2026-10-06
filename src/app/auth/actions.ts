@@ -214,7 +214,7 @@ export async function forgotPasswordAction(
     : "";
   const email = normalizeEmail(emailValue);
 
-  if (!EMAIL_PATTERN.test(email)) {
+  if (!isValidEmail(email)) {
     return {
       ok: false,
       message: "Enter a valid email address.",

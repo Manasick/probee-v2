@@ -21,8 +21,7 @@ export async function GET(request: NextRequest) {
 
   const defaultNext = type === "recovery" ? "/reset-password" : "/account";
   const next = safeNextPath(
-    request.nextUrl.searchParams.get("next"),
-    defaultNext,
+    request.nextUrl.searchParams.get("next") ?? defaultNext,
   );
 
   const supabase = await createClient();

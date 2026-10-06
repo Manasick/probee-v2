@@ -1,4 +1,4 @@
-name: STEP 19 Regression
+name: ProBee Production Regression
 
 on:
   push:
@@ -9,6 +9,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: probee-production-regression-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   regression:

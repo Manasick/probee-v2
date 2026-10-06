@@ -47,6 +47,17 @@ describe("transactional email regression contracts", () => {
 });
 
 describe("auth regression contracts", () => {
+  it("keeps password recovery validation type-safe and preserves its default destination", () => {
+    const actions = read("src/app/auth/actions.ts");
+    const confirm = read("src/app/auth/confirm/route.ts");
+
+    expect(actions).toContain("isValidEmail(email)");
+    expect(actions).not.toContain("EMAIL_PATTERN.test(email)");
+    expect(confirm).toContain(
+      'request.nextUrl.searchParams.get("next") ?? defaultNext',
+    );
+  });
+
   it("keeps safe next-path validation centralized", () => {
     const urls = read("src/lib/auth/urls.ts");
     const callback = read("src/app/auth/callback/route.ts");

@@ -284,7 +284,6 @@ export function CartView() {
                       fill
                       className="object-cover"
                       sizes="112px"
-                      unoptimized
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-text-muted">

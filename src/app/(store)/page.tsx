@@ -2,6 +2,10 @@ import Link from "next/link";
 import { Container, Surface } from "@/components/ui";
 import { CategoryGrid } from "@/components/store/category-grid";
 import { ProductGrid } from "@/components/store/product-grid";
+import {
+  getPublicCatalogCategories,
+  getPublicCatalogFeaturedProducts,
+} from "@/lib/catalog/server";
 
 const values = [
   {
@@ -21,7 +25,12 @@ const values = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [featuredProducts, categories] = await Promise.all([
+    getPublicCatalogFeaturedProducts(6),
+    getPublicCatalogCategories(),
+  ]);
+
   return (
     <>
       <section className="border-b border-[var(--probee-border-subtle)]">
@@ -71,7 +80,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-8">
-            <ProductGrid products={[]} />
+            <ProductGrid products={featuredProducts} />
           </div>
         </Container>
       </section>
@@ -85,7 +94,7 @@ export default function HomePage() {
             </h2>
           </div>
           <div className="mt-8">
-            <CategoryGrid categories={[]} />
+            <CategoryGrid categories={categories} />
           </div>
         </Container>
       </section>

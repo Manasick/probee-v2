@@ -374,6 +374,34 @@ export async function getPublicCatalogCategories(): Promise<CatalogCategory[]> {
   return (data ?? []).map(mapCategory);
 }
 
+export async function getPublicCatalogFeaturedProducts(
+  limit = 6,
+): Promise<CatalogProduct[]> {
+  const supabase = await createClient();
+  const safeLimit = Math.min(Math.max(limit, 1), 12);
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id,name,slug,short_description,full_description,cover_url,product_type,is_active,is_published,is_featured,sort_order,warranty_duration,warranty_unit,delivery_type,delivery_details,requires_customer_email,customer_requirements,custom_attributes,seo_title,seo_description,seo_keywords",
+    )
+    .eq("is_active", true)
+    .eq("is_published", true)
+    .eq("is_featured", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(safeLimit);
+
+  if (error) {
+    return [];
+  }
+
+  return buildProductMap(
+    supabase,
+    (data ?? []) as ProductRow[],
+  );
+}
+
 export async function getPublicCatalogProducts(
   limit = 24,
 ): Promise<CatalogProduct[]> {
@@ -492,6 +520,69 @@ const getPublicCatalogProductBySlugUncached = async (
 
 export const getPublicCatalogProductBySlug = cache(
   getPublicCatalogProductBySlugUncached,
+);
+
+const getPublicCatalogCategoryBySlugUncached = async (
+  slug: string,
+): Promise<{ category: CatalogCategory; products: CatalogProduct[] } | null> => {
+  const normalizedSlug = slug.trim().toLowerCase();
+
+  if (!normalizedSlug) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data: category, error: categoryError } = await supabase
+    .from("categories")
+    .select(
+      "id,name,slug,description,cover_url,is_active,sort_order,seo_title,seo_description",
+    )
+    .eq("slug", normalizedSlug)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (categoryError || !category) {
+    return null;
+  }
+
+  const { data: links, error: linkError } = await supabase
+    .from("product_categories")
+    .select("product_id")
+    .eq("category_id", category.id)
+    .limit(48);
+
+  if (linkError) {
+    return {
+      category: mapCategory(category),
+      products: [],
+    };
+  }
+
+  const productIds = (links ?? [])
+    .map((link) => link.product_id)
+    .filter((id): id is string => typeof id === "string")
+    .slice(0, 24);
+
+  if (productIds.length === 0) {
+    return {
+      category: mapCategory(category),
+      products: [],
+    };
+  }
+
+  const products = await getPublicCatalogProductsByIds(productIds);
+  const productMap = new Map(products.map((product) => [product.id, product]));
+
+  return {
+    category: mapCategory(category),
+    products: productIds
+      .map((productId) => productMap.get(productId))
+      .filter((product): product is CatalogProduct => Boolean(product)),
+  };
+};
+
+export const getPublicCatalogCategoryBySlug = cache(
+  getPublicCatalogCategoryBySlugUncached,
 );
 
 export function getCatalogPriceLabel(product: CatalogProduct): string | null {

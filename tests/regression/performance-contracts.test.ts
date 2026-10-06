@@ -40,10 +40,32 @@ describe("production performance contracts", () => {
   it("keeps product images on Next.js optimized delivery", () => {
     const card = read("src/components/store/product-card.tsx");
     const gallery = read("src/components/store/product-media-gallery.tsx");
+    const cart = read("src/components/store/cart-view.tsx");
     expect(card).not.toContain("unoptimized");
     expect(gallery).not.toContain("unoptimized");
+    expect(cart).not.toContain("unoptimized");
     expect(card).toContain("priority={priority}");
     expect(gallery).toContain("priority");
+  });
+
+  it("batches admin payment-proof signed URL generation", () => {
+    const adminOperations = read("src/lib/admin/operations.ts");
+    expect(adminOperations).toContain("Promise.all(");
+    expect(adminOperations).toContain('.from("payment-proofs")');
+    expect(adminOperations).not.toContain("for (const proof of proofRows");
+  });
+
+  it("keeps homepage and category pages connected to the live catalog layer", () => {
+    const home = read("src/app/(store)/page.tsx");
+    const category = read("src/app/(store)/categories/[slug]/page.tsx");
+    const catalog = read("src/lib/catalog/server.ts");
+
+    expect(home).toContain("getPublicCatalogFeaturedProducts");
+    expect(home).toContain("getPublicCatalogCategories");
+    expect(category).toContain("getPublicCatalogCategoryBySlug");
+    expect(category).toContain("notFound()");
+    expect(catalog).toContain('eq("is_featured", true)');
+    expect(catalog).toContain("getPublicCatalogCategoryBySlug = cache(");
   });
 
   it("adds production-safe HTTP hardening without a broad CSP", () => {
