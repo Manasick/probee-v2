@@ -393,11 +393,29 @@ export async function registerProductMediaAction(
         .eq("id", inserted.id)
         .eq("product_id", productId);
 
+      const fallbackSignedUrl = await signMediaPath(
+        supabase,
+        inserted.media_url,
+      );
+
       return {
-        ...EMPTY_STATE,
+        ok: true,
         message:
-          "The image was uploaded, but the primary-media update failed. The image remains safely stored as a secondary item.",
+          "Image uploaded, but selecting it as the primary image failed. It remains available as a secondary image.",
         mediaId: inserted.id,
+        media: {
+          id: inserted.id,
+          url: fallbackSignedUrl ?? "",
+          storagePath: inserted.media_url,
+          alt: inserted.alt_text ?? "",
+          title: inserted.title ?? "",
+          caption: inserted.caption ?? "",
+          kind: "image",
+          sortOrder: inserted.sort_order,
+          isPrimary: false,
+          active: inserted.is_active,
+          mimeType,
+        },
       };
     }
 
