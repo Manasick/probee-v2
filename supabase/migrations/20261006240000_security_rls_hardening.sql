@@ -182,9 +182,11 @@ begin
       and so.name = p_storage_path
       and coalesce(so.metadata ->> 'mimetype', '') = p_mime_type
       and case
-        when coalesce(so.metadata ->> 'size', '') ~ '^[0-9]+
-    raise exception 'payment:file_invalid';
-  end if;
+       and case
+         when coalesce(so.metadata ->> 'size', '') ~ '^[0-9]+$'
+         then (so.metadata ->> 'size')::bigint = p_file_size_bytes
+         else false
+       end
 
   if v_order.order_status in ('cancelled', 'completed', 'refunded') then
     raise exception 'payment:order_ineligible';
@@ -511,146 +513,6 @@ $$;
 revoke all on function public.get_my_digital_entitlements()
 from public, anon, authenticated;
 grant execute on function public.get_my_digital_entitlements()
-to authenticated;
-
-          then (so.metadata ->> 'size')::bigint = p_file_size_bytes
-        else false
-      end
-  ) then
-    raise exception 'payment:file_invalid';
-  end if;
-
-  if v_order.order_status in ('cancelled', 'completed', 'refunded') then
-    raise exception 'payment:order_ineligible';
-  end if;
-
-  if v_order.payment_status = 'paid' then
-    raise exception 'payment:already_paid';
-  end if;
-
-  if v_order.total <= 0 then
-    raise exception 'payment:not_required';
-  end if;
-
-  if not exists (
-    select 1
-    from public.payment_settings ps
-    where ps.payment_method = 'manual_bank_transfer'
-      and ps.enabled = true
-  ) then
-    raise exception 'payment:method_unavailable';
-  end if;
-
-  select pay.id, pay.payment_status
-  into v_payment_id, v_payment_status
-  from public.payments pay
-  where pay.order_id = v_order.id
-    and pay.payment_method = 'manual_bank_transfer'
-    and pay.payment_status = 'pending'
-  order by pay.created_at desc
-  limit 1
-  for update;
-
-  if v_payment_id is null then
-    insert into public.payments (
-      order_id,
-      payment_method,
-      payment_status,
-      amount,
-      currency
-    )
-    values (
-      v_order.id,
-      'manual_bank_transfer',
-      'pending',
-      v_order.total,
-      v_order.currency
-    )
-    returning id, payment_status into v_payment_id, v_payment_status;
-  else
-    update public.payments
-    set
-      external_reference = v_reference,
-      amount = v_order.total,
-      currency = v_order.currency,
-      updated_at = timezone('utc', now())
-    where id = v_payment_id;
-  end if;
-
-  if p_original_filename is not null then
-    v_filename := left(btrim(p_original_filename), 255);
-  end if;
-
-  update public.payments
-  set
-    external_reference = v_reference,
-    updated_at = timezone('utc', now())
-  where id = v_payment_id;
-
-  update public.orders
-  set
-    payment_method = 'manual_bank_transfer',
-    updated_at = timezone('utc', now())
-  where id = v_order.id;
-
-  begin
-    insert into public.payment_proofs (
-      payment_id,
-      storage_path,
-      original_filename,
-      mime_type,
-      file_size_bytes,
-      uploaded_by,
-      verification_status,
-      file_sha256
-    )
-    values (
-      v_payment_id,
-      p_storage_path,
-      v_filename,
-      p_mime_type,
-      p_file_size_bytes,
-      v_user_id,
-      'pending',
-      p_file_sha256
-    );
-  exception
-    when unique_violation then
-      select *
-      into v_existing_proof
-      from public.payment_proofs pp
-      where pp.payment_id = v_payment_id
-        and pp.file_sha256 = p_file_sha256
-      limit 1;
-
-      if v_existing_proof.id is null then
-        raise;
-      end if;
-
-      return jsonb_build_object(
-        'paymentId', v_payment_id,
-        'proofId', v_existing_proof.id,
-        'paymentStatus', 'pending',
-        'amount', v_order.total,
-        'currency', v_order.currency,
-        'verificationStatus', v_existing_proof.verification_status,
-        'createdProof', false
-      );
-  end;
-
-  return jsonb_build_object(
-    'paymentId', v_payment_id,
-    'proofId', (
-      select id
-      from public.payment_proofs
-      where storage_path = p_storage_path
-    ),
-    'paymentStatus', 'pending',
-    'amount', v_order.total,
-    'currency', v_order.currency,
-    'verificationStatus', 'pending',
-    'createdProof', true
-  );
 end;
 $$;
 
