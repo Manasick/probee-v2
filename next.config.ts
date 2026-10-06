@@ -7,11 +7,9 @@ const supabaseImagePattern = (() => {
 
   try {
     const parsed = new URL(supabaseUrl);
-    return {
-      protocol: parsed.protocol.replace(":", ""),
-      hostname: parsed.hostname,
-      pathname: "/**",
-    } as const;
+    parsed.pathname = "/**";
+    parsed.search = "";
+    return parsed;
   } catch {
     return null;
   }
