@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button, Surface } from "@/components/ui";
 import { useCart } from "@/lib/cart/provider";
 import { formatDuration, formatPrice } from "@/lib/catalog/format";
@@ -59,17 +59,7 @@ export function ProductPlanSelector({
   const [selectedId, setSelectedId] = useState(plans[0]?.id);
   const [addedPlanId, setAddedPlanId] = useState<string | null>(null);
 
-  const planSignature = useMemo(
-    () => plans.map((plan) => plan.id).join("|"),
-    [plans],
-  );
-
   const firstPlanId = plans[0]?.id;
-
-  useEffect(() => {
-    setSelectedId(firstPlanId);
-    setAddedPlanId(null);
-  }, [planSignature, firstPlanId]);
 
   if (plans.length === 0) {
     return (
