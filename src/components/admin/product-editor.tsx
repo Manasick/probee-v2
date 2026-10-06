@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AdminStatus } from "@/components/admin/admin-status";
+import { ProductMediaManager } from "@/components/admin/product-media-manager";
 import { Button, Container, Surface } from "@/components/ui";
 import {
   billingIntervalOptions,
@@ -74,6 +75,7 @@ function blankProduct(): AdminProductInput {
     features: [],
     packageInclusions: [],
     plans: [],
+    media: [],
   };
 }
 
@@ -1069,18 +1071,16 @@ export function ProductEditor({
           </Surface>
 
           <Surface className="p-5 sm:p-7">
-            <details>
+            <details open>
               <summary className="cursor-pointer list-none text-xl font-semibold focus-visible:outline-2 focus-visible:outline-gold">
                 Product media
               </summary>
 
-              <div className="mt-6 rounded-[var(--probee-radius-md)] border border-dashed border-[var(--probee-border-default)] bg-surface-2 p-5">
-                <p className="text-sm font-semibold">Media management is coming in STEP 8.</p>
-                <p className="mt-2 text-sm leading-6 text-text-muted">
-                  Image/video upload, storage buckets, signed URLs and media mutations
-                  are intentionally not implemented here. No fake upload controls are shown.
-                </p>
-              </div>
+              <ProductMediaManager
+                productId={product.id}
+                productName={product.name || "Product"}
+                initialMedia={product.media}
+              />
             </details>
           </Surface>
 
