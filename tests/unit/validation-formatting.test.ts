@@ -238,7 +238,8 @@ describe("admin validation", () => {
   });
 
   it("rejects unsafe custom attribute keys and malformed arrays", () => {
-    expect(validateKeyValueObject({ "__proto__": "x" })).toBe(true);
+    const reservedKeyObject = JSON.parse(`{"__proto__":"x"}`) as Record<string, unknown>;
+    expect(validateKeyValueObject(reservedKeyObject)).toBe(false);
     expect(validateKeyValueObject({ constructor: "x" })).toBe(false);
     expect(validateTextArray(["ok", ""])).toBe(false);
     expect(validateTextArray(["x".repeat(121)], 120)).toBe(false);
