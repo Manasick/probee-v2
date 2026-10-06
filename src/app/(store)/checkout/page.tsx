@@ -1,30 +1,31 @@
-import { Container, Surface } from "@/components/ui";
-import { CheckoutCartStatus } from "@/components/store/checkout-cart-status";
+import { Container } from "@/components/ui";
+import { CheckoutForm } from "@/components/store/checkout-form";
+import { requireAuthenticated } from "@/lib/auth/server";
 
-export default function CheckoutPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CheckoutPage() {
+  const context = await requireAuthenticated("/checkout");
+
   return (
     <section className="probee-section">
       <Container>
         <div className="max-w-3xl">
           <p className="probee-label">Checkout</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">
-            Checkout foundation
+            Complete your order.
           </h1>
           <p className="mt-4 text-base leading-7 text-text-secondary">
-            Your cart is available here for the future trusted checkout flow.
+            Review the current catalog pricing and confirm your customer details before placing the order.
           </p>
         </div>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-          <CheckoutCartStatus />
-
-          <Surface className="p-6">
-            <h2 className="text-lg font-semibold">Next-stage checkout</h2>
-            <p className="mt-3 text-sm leading-6 text-text-muted">
-              Customer details, server-side total validation, order creation,
-              and payment handling are intentionally not enabled in this step.
-            </p>
-          </Surface>
+        <div className="mt-8">
+          <CheckoutForm
+            initialEmail={context.user.email ?? ""}
+            initialName={context.profile.displayName}
+            initialPhone={context.profile.phone}
+          />
         </div>
       </Container>
     </section>
