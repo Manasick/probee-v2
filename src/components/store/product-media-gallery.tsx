@@ -52,7 +52,7 @@ export function ProductMediaGallery({
             fill
             className="object-contain"
             sizes="(min-width: 1024px) 50vw, 100vw"
-            unoptimized
+            priority
           />
         )}
       </div>
@@ -90,7 +90,6 @@ export function ProductMediaGallery({
                     fill
                     className="object-cover"
                     sizes="96px"
-                    unoptimized
                   />
                 )}
               </button>
