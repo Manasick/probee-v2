@@ -59,8 +59,14 @@ export default async function DigitalProductsPage() {
             <EmptyState
               title="No digital access yet"
               description="Paid digital purchases fulfilled by ProBee will appear here."
-              actionLabel="View orders"
-              actionHref="/account/orders"
+              action={
+                <Link
+                  href="/account/orders"
+                  className="probee-focus-ring inline-flex min-h-11 items-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover"
+                >
+                  View orders
+                </Link>
+              }
             />
           </div>
         ) : (
