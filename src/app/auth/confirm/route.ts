@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient();
 
-  if (tokenHash && type) {
+  if (
+    tokenHash &&
+    (type === "email" || type === "signup")
+  ) {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type: type as EmailOtpType,
