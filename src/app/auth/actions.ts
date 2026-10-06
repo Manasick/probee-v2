@@ -180,7 +180,7 @@ export async function resendVerificationAction(
     : "";
   const email = normalizeEmail(emailValue);
 
-  if (!EMAIL_PATTERN.test(email)) {
+  if (!isValidEmail(email)) {
     return {
       ok: false,
       message: "Enter the email address you want to use for account activation.",
@@ -209,7 +209,10 @@ export async function forgotPasswordAction(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  const email = normalizedEmail(formData.get("email"));
+  const emailValue = typeof formData.get("email") === "string"
+    ? String(formData.get("email"))
+    : "";
+  const email = normalizeEmail(emailValue);
 
   if (!EMAIL_PATTERN.test(email)) {
     return {
