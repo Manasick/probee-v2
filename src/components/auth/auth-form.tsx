@@ -53,12 +53,14 @@ function FormMessage({
 function SubmitButton({
   label,
   pendingLabel,
+  disabled = false,
 }: {
   label: string;
   pendingLabel: string;
+  disabled?: boolean;
 }) {
   return (
-    <Button type="submit" size="lg" className="w-full">
+    <Button type="submit" size="lg" className="w-full" disabled={disabled}>
       {label}
       <span className="sr-only">{pendingLabel}</span>
     </Button>
@@ -148,6 +150,7 @@ export function AuthForm({
         <SubmitButton
           label={pending ? "Signing in…" : "Sign in"}
           pendingLabel={pending ? "Please wait" : ""}
+          disabled={pending}
         />
 
         <div className="text-center text-sm text-text-muted">
@@ -236,6 +239,7 @@ export function AuthForm({
         <SubmitButton
           label={pending ? "Creating account…" : "Create account"}
           pendingLabel={pending ? "Please wait" : ""}
+          disabled={pending}
         />
 
         <p className="text-xs leading-5 text-text-muted">
