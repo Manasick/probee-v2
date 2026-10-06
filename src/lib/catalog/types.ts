@@ -41,6 +41,7 @@ export interface ProductPlan {
   features?: string[];
   deliveryType?: string;
   deliveryDetails?: string;
+  requiresCustomerEmail?: boolean;
   customerRequirements?: unknown[];
   customAttributes?: Record<string, unknown>;
   active?: boolean;
