@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { AdminStatus } from "@/components/admin/admin-status";
+import { ResendVerificationForm } from "@/components/auth/auth-form";
 import { Button, Container, Surface } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 import { ensureProfile, getCurrentUser } from "@/lib/auth/server";
 import { signOutAction } from "@/app/auth/actions";
 
@@ -18,10 +19,8 @@ export default async function AccountPage({
     redirect("/login?next=%2Faccount");
   }
 
-  const profile = await ensureProfile(
-    await import("@/lib/supabase/server").then((module) => module.createClient()),
-    user.id,
-  );
+  const supabase = await createClient();
+  const profile = await ensureProfile(supabase, user.id);
 
   const verified = Boolean(user.email_confirmed_at);
   const passwordUpdated = params.password === "updated";
@@ -65,14 +64,19 @@ export default async function AccountPage({
                   the account as fully active.
                 </p>
               </div>
-              <AdminStatus label="Not verified" tone="warning" />
+              <span className="inline-flex min-h-7 items-center rounded-full border border-red-400/30 bg-red-400/10 px-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-red-200">
+                Not verified
+              </span>
             </div>
 
-            <form action={signOutAction} className="mt-4">
-              <Button type="submit" size="sm" variant="secondary">
-                Sign out
-              </Button>
-            </form>
+            <div className="mt-4 grid gap-4">
+              <ResendVerificationForm initialEmail={email} />
+              <form action={signOutAction}>
+                <Button type="submit" size="sm" variant="secondary">
+                  Sign out
+                </Button>
+              </form>
+            </div>
           </Surface>
         ) : (
           <Surface className="mt-8 border-[var(--probee-border-default)]">
@@ -83,7 +87,9 @@ export default async function AccountPage({
                   Your email address is confirmed for this account.
                 </p>
               </div>
-              <AdminStatus label="Verified" tone="success" />
+              <span className="inline-flex min-h-7 items-center rounded-full border border-[var(--probee-border-default)] bg-gold-soft px-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-gold">
+                Verified
+              </span>
             </div>
           </Surface>
         )}
