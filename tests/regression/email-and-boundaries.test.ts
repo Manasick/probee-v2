@@ -78,7 +78,7 @@ describe("auth regression contracts", () => {
 
     expect(adminLayout).toContain("requireStaff");
     expect(adminAuth).toContain("current_user_is_staff");
-    expect(accountPage).toContain("getUser");
+    expect(accountPage).toContain("requireAuthenticated");
   });
 });
 
