@@ -120,6 +120,10 @@ export function ProductMediaManager({
             prepared.storagePath,
             prepared.uploadToken,
             file,
+            {
+              cacheControl: "31536000",
+              contentType: file.type,
+            },
           );
 
         if (uploadError) {
