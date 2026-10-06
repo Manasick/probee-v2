@@ -97,6 +97,8 @@ describe("repository security regression contracts", () => {
       "set_review_moderation",
       "claim_transactional_email",
       "complete_transactional_email",
+      "fulfill_digital_order_item",
+      "set_digital_entitlement_status",
     ]) {
       expect(allSql).toMatch(new RegExp(`\\bfunction\\s+(?:public\\.)?${functionName}\\s*\\(`, "i"));
     }
