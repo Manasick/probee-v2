@@ -1,10 +1,12 @@
 "use server";
 
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/admin/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/admin/validation";
+import { sendTransactionalEmail } from "@/lib/email/server";
 
 function messageFromError(errorMessage: string): string {
   const messages: Record<string, string> = {
@@ -22,7 +24,6 @@ function messageFromError(errorMessage: string): string {
     "digital:entitlement_not_found": "The digital entitlement could not be found.",
     "digital:access_not_eligible": "This entitlement cannot be activated because payment/order eligibility has changed or it has expired.",
   };
-
   return messages[errorMessage] ?? "The digital fulfillment request could not be completed.";
 }
 
@@ -33,10 +34,7 @@ export async function fulfillDigitalOrderItemAction(formData: FormData) {
   const accessUrlValue = formData.get("customerAccessUrl");
 
   if (typeof orderItemId !== "string" || !isUuid(orderItemId)) {
-    redirect(
-      "/admin/digital-delivery?error=" +
-        encodeURIComponent("The order item reference is invalid."),
-    );
+    redirect("/admin/digital-delivery?error=" + encodeURIComponent("The order item reference is invalid."));
   }
 
   const customerAccessUrl =
@@ -45,16 +43,21 @@ export async function fulfillDigitalOrderItemAction(formData: FormData) {
       : null;
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("fulfill_digital_order_item", {
+  const { data, error } = await supabase.rpc("fulfill_digital_order_item", {
     p_order_item_id: orderItemId,
     p_customer_access_url: customerAccessUrl,
   });
 
   if (error) {
-    redirect(
-      "/admin/digital-delivery?error=" +
-        encodeURIComponent(messageFromError(error.message)),
-    );
+    redirect("/admin/digital-delivery?error=" + encodeURIComponent(messageFromError(error.message)));
+  }
+
+  const result = data as Record<string, unknown> | null;
+  const entitlementId = typeof result?.entitlementId === "string" ? result.entitlementId : null;
+  if (entitlementId && isUuid(entitlementId)) {
+    after(() => {
+      void sendTransactionalEmail({ event: "digital_entitlement_ready", entitlementId }).catch(() => undefined);
+    });
   }
 
   revalidatePath("/admin/digital-delivery");
@@ -62,15 +65,10 @@ export async function fulfillDigitalOrderItemAction(formData: FormData) {
   revalidatePath("/account/orders");
   revalidatePath("/account/digital-products");
 
-  redirect(
-    "/admin/digital-delivery?success=" +
-      encodeURIComponent("Digital entitlement fulfillment completed."),
-  );
+  redirect("/admin/digital-delivery?success=" + encodeURIComponent("Digital entitlement fulfillment completed."));
 }
 
-export async function setDigitalEntitlementStatusAction(
-  formData: FormData,
-) {
+export async function setDigitalEntitlementStatusAction(formData: FormData) {
   await requireStaff();
 
   const entitlementId = formData.get("entitlementId");
@@ -81,17 +79,11 @@ export async function setDigitalEntitlementStatusAction(
     !isUuid(entitlementId) ||
     typeof status !== "string"
   ) {
-    redirect(
-      "/admin/digital-delivery?error=" +
-        encodeURIComponent("The entitlement reference is invalid."),
-    );
+    redirect("/admin/digital-delivery?error=" + encodeURIComponent("The entitlement reference is invalid."));
   }
 
   if (!["active", "suspended", "expired", "revoked"].includes(status)) {
-    redirect(
-      "/admin/digital-delivery?error=" +
-        encodeURIComponent("The entitlement status is invalid."),
-    );
+    redirect("/admin/digital-delivery?error=" + encodeURIComponent("The entitlement status is invalid."));
   }
 
   const supabase = await createClient();
@@ -101,18 +93,12 @@ export async function setDigitalEntitlementStatusAction(
   });
 
   if (error) {
-    redirect(
-      "/admin/digital-delivery?error=" +
-        encodeURIComponent(messageFromError(error.message)),
-    );
+    redirect("/admin/digital-delivery?error=" + encodeURIComponent(messageFromError(error.message)));
   }
 
   revalidatePath("/admin/digital-delivery");
   revalidatePath("/account");
   revalidatePath("/account/digital-products");
 
-  redirect(
-    "/admin/digital-delivery?success=" +
-      encodeURIComponent("Entitlement status updated."),
-  );
+  redirect("/admin/digital-delivery?success=" + encodeURIComponent("Entitlement status updated."));
 }
