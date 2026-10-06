@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireStaff } from "@/lib/admin/auth";
 import type {
   AdminReview,
   CustomerReview,
@@ -231,16 +232,23 @@ function parseAdminReview(value: unknown): AdminReview | null {
 
 export async function getAdminReviews(
   status: ReviewStatus | "all" = "pending",
-): Promise<{ items: AdminReview[]; totalCount: number }> {
+  page = 1,
+  search = "",
+): Promise<{ items: AdminReview[]; totalCount: number; page: number; pageSize: number; pageCount: number }> {
+  await requireStaff();
+  const safePage = Math.max(1, Math.min(page, 1000));
+  const pageSize = 20;
+  const offset = (safePage - 1) * pageSize;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_admin_reviews", {
     p_status: status,
-    p_limit: 100,
-    p_offset: 0,
+    p_search: search,
+    p_limit: pageSize,
+    p_offset: offset,
   });
 
   if (error || !isRecord(data)) {
-    return { items: [], totalCount: 0 };
+    return { items: [], totalCount: 0, page: safePage, pageSize, pageCount: 1 };
   }
 
   return {
@@ -248,5 +256,8 @@ export async function getAdminReviews(
       .map(parseAdminReview)
       .filter((item): item is AdminReview => Boolean(item)),
     totalCount: Number(data.totalCount ?? 0),
+    page: Number(data.page ?? safePage),
+    pageSize: Number(data.limit ?? pageSize),
+    pageCount: Number(data.pageCount ?? 1),
   };
 }

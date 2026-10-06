@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminStatus } from "@/components/admin/admin-status";
 import { Container, Surface } from "@/components/ui";
-import { getAdminProductList } from "@/lib/admin/catalog";
+import { getAdminCategories, getAdminProductList } from "@/lib/admin/catalog";
 import { formatPrice } from "@/lib/catalog/format";
 
 type SearchParamValue = string | string[] | undefined;
@@ -26,6 +26,7 @@ function buildPageHref(params: {
   published: string;
   active: string;
   featured: string;
+  categoryId: string;
   page: number;
 }): string {
   const query = new URLSearchParams();
@@ -34,6 +35,7 @@ function buildPageHref(params: {
   if (params.published !== "all") query.set("published", params.published);
   if (params.active !== "all") query.set("active", params.active);
   if (params.featured !== "all") query.set("featured", params.featured);
+  if (params.categoryId) query.set("categoryId", params.categoryId);
   query.set("page", String(params.page));
 
   return "/admin/products?" + query.toString();
@@ -49,18 +51,24 @@ export default async function AdminProductsPage({
   const published = filterValue(query.published);
   const active = filterValue(query.active);
   const featured = filterValue(query.featured);
+  const categoryId = firstValue(query.categoryId);
   const page = pageValue(query.page);
 
   let result;
+  let categories;
 
   try {
-    result = await getAdminProductList({
-      search,
-      published,
-      active,
-      featured,
-      page,
-    });
+    [result, categories] = await Promise.all([
+      getAdminProductList({
+        search,
+        published,
+        active,
+        featured,
+        categoryId,
+        page,
+      }),
+      getAdminCategories(),
+    ]);
   } catch (error) {
     const message =
       error instanceof Error
@@ -116,7 +124,7 @@ export default async function AdminProductsPage({
         </div>
 
         <Surface className="mt-8 p-4 sm:p-5">
-          <form className="grid gap-3 lg:grid-cols-[1.8fr_repeat(3,1fr)_auto]">
+          <form className="grid gap-3 lg:grid-cols-[1.8fr_repeat(4,1fr)_auto]">
             <div>
               <label
                 htmlFor="product-search"
@@ -163,6 +171,28 @@ export default async function AdminProductsPage({
                 </select>
               </div>
             ))}
+
+            <div>
+              <label
+                htmlFor="filter-category"
+                className="mb-2 block text-sm font-medium text-text-secondary"
+              >
+                Category
+              </label>
+              <select
+                id="filter-category"
+                name="categoryId"
+                defaultValue={categoryId}
+                className="min-h-11 w-full rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-1 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
+              >
+                <option value="">All categories</option>
+                {(categories ?? []).map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <div className="flex items-end">
               <button
@@ -356,6 +386,7 @@ export default async function AdminProductsPage({
                     published,
                     active,
                     featured,
+                    categoryId,
                     page: result.page - 1,
                   })}
                   className="probee-focus-ring inline-flex min-h-10 items-center rounded-lg border border-[var(--probee-border-default)] px-3 text-sm font-semibold hover:bg-surface-2"
@@ -370,6 +401,7 @@ export default async function AdminProductsPage({
                     published,
                     active,
                     featured,
+                    categoryId,
                     page: result.page + 1,
                   })}
                   className="probee-focus-ring inline-flex min-h-10 items-center rounded-lg border border-[var(--probee-border-default)] px-3 text-sm font-semibold hover:bg-surface-2"

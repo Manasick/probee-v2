@@ -21,9 +21,11 @@ function getPaymentId(formData: FormData): string | null {
 function redirectWithMessage(
   type: "success" | "error",
   message: string,
+  basePath = "/admin/payments",
 ): never {
+  const safeBase = basePath === "/admin/settings" ? "/admin/settings" : "/admin/payments";
   redirect(
-    `/admin/payments?${type}=${encodeURIComponent(message)}`,
+    safeBase + "?" + type + "=" + encodeURIComponent(message),
   );
 }
 
@@ -107,6 +109,8 @@ export async function saveManualBankTransferSettingsAction(
 ) {
   const context = await requireStaff();
   const supabase = await createClient();
+  const returnToValue = formData.get("returnTo");
+  const returnTo = returnToValue === "/admin/settings" ? "/admin/settings" : "/admin/payments";
 
   const { data: isAdmin, error: adminError } = await supabase.rpc(
     "current_user_is_admin",
@@ -116,9 +120,9 @@ export async function saveManualBankTransferSettingsAction(
     redirectWithMessage(
       "error",
       "Only authorized administrators can change payment settings.",
+      returnTo,
     );
   }
-
   const enabled = formData.get("enabled") === "on";
   const bankName = String(formData.get("bankName") ?? "").trim();
   const accountName = String(formData.get("accountName") ?? "").trim();
@@ -130,15 +134,15 @@ export async function saveManualBankTransferSettingsAction(
   ).trim();
 
   if (bankName.length > 120 || accountName.length > 120 || accountNumber.length > 120) {
-    redirectWithMessage("error", "Bank details are longer than the supported limit.");
+    redirectWithMessage("error", "Bank details are longer than the supported limit.", returnTo);
   }
 
   if (branch.length > 120 || bankCodeSwift.length > 120) {
-    redirectWithMessage("error", "Branch or bank code is longer than the supported limit.");
+    redirectWithMessage("error", "Branch or bank code is longer than the supported limit.", returnTo);
   }
 
   if (paymentInstructions.length > 5000) {
-    redirectWithMessage("error", "Payment instructions are too long.");
+    redirectWithMessage("error", "Payment instructions are too long.", returnTo);
   }
 
   const { error } = await supabase
@@ -163,11 +167,13 @@ export async function saveManualBankTransferSettingsAction(
     redirectWithMessage(
       "error",
       "Payment settings could not be saved. Please try again.",
+      returnTo,
     );
   }
 
   revalidatePath("/admin/payments");
+  revalidatePath("/admin/settings");
   revalidatePath("/checkout");
   revalidatePath("/payment");
-  redirectWithMessage("success", "Manual bank transfer settings saved.");
+  redirectWithMessage("success", "Manual bank transfer settings saved.", returnTo);
 }

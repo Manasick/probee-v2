@@ -1,393 +1,177 @@
+import Link from "next/link";
 import { Container, Surface } from "@/components/ui";
-import { requireStaff } from "@/lib/admin/auth";
-import { createClient } from "@/lib/supabase/server";
-import {
-  markManualPaymentPaidAction,
-  rejectManualPaymentAction,
-  saveManualBankTransferSettingsAction,
-} from "./actions";
+import { AdminStatus } from "@/components/admin/admin-status";
+import { getAdminPaymentProofUrls, getAdminPayments } from "@/lib/admin/operations";
+import { markManualPaymentPaidAction, rejectManualPaymentAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-interface PaymentRow {
-  id: string;
-  order_id: string;
-  payment_method: string;
-  payment_status: string;
-  amount: number | string;
-  currency: string;
-  external_reference: string | null;
-  verified_by: string | null;
-  verified_at: string | null;
-  created_at: string;
+type Param = string | string[] | undefined;
+
+function value(input: Param): string {
+  return Array.isArray(input) ? input[0] ?? "" : input ?? "";
 }
 
-interface OrderRow {
-  id: string;
-  order_reference: string;
-  user_id: string | null;
-  order_status: string;
-  customer_email: string | null;
-  customer_name: string | null;
+function pageValue(input: Param): number {
+  const parsed = Number.parseInt(value(input), 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
 }
 
-interface ProofRow {
-  id: string;
-  payment_id: string;
-  storage_path: string;
-  original_filename: string | null;
-  mime_type: string | null;
-  file_size_bytes: number | null;
-  verification_status: string;
-  verified_at: string | null;
-  created_at: string;
+function pageHref(search: string, status: string, page: number): string {
+  const query = new URLSearchParams();
+  if (search) query.set("search", search);
+  if (status !== "all") query.set("status", status);
+  query.set("page", String(page));
+  return "/admin/payments?" + query.toString();
 }
 
-function formatAmount(amount: number | string, currency: string): string {
+function money(amount: unknown, currency: string): string {
+  const numeric = typeof amount === "number" ? amount : Number(amount ?? 0);
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency,
       maximumFractionDigits: 2,
-    }).format(Number(amount));
+    }).format(numeric);
   } catch {
-    return `${currency} ${Number(amount).toFixed(2)}`;
+    return currency + " " + numeric.toFixed(2);
   }
 }
 
-function formatFileSize(size: number | null): string {
-  if (!size || size <= 0) {
-    return "Unknown size";
-  }
+function tone(status: string): "neutral" | "success" | "warning" | "danger" | "info" {
+  if (status === "paid") return "success";
+  if (status === "pending") return "warning";
+  if (status === "rejected" || status === "failed" || status === "refunded") return "danger";
+  return "info";
+}
 
-  const megabytes = size / (1024 * 1024);
-  return `${megabytes.toFixed(megabytes >= 10 ? 0 : 1)} MB`;
+function date(value: unknown): string {
+  return typeof value === "string"
+    ? new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
+    : "—";
 }
 
 export default async function AdminPaymentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; error?: string }>;
+  searchParams: Promise<Record<string, Param>>;
 }) {
-  const staff = await requireStaff();
-  const supabase = await createClient();
-
-  const { data: isAdmin } = await supabase.rpc("current_user_is_admin");
-
-  const [
-    { data: settings },
-    { data: payments, error: paymentsError },
-  ] = await Promise.all([
-    isAdmin
-      ? supabase
-          .from("payment_settings")
-          .select(
-            "payment_method,enabled,bank_name,account_name,account_number,branch,bank_code_swift,payment_instructions",
-          )
-          .eq("payment_method", "manual_bank_transfer")
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-    supabase
-      .from("payments")
-      .select(
-        "id,order_id,payment_method,payment_status,amount,currency,external_reference,verified_by,verified_at,created_at,order:orders(id,order_reference,user_id,order_status,customer_email,customer_name)",
-      )
-      .eq("payment_method", "manual_bank_transfer")
-      .order("created_at", { ascending: false })
-      .limit(50),
-  ]);
-
-  const paymentRows = (payments ?? []) as Array<
-    PaymentRow & { order: OrderRow | OrderRow[] | null }
-  >;
-
-  const paymentIds = paymentRows.map((payment) => payment.id);
-  let proofs: ProofRow[] = [];
-
-  if (paymentIds.length > 0) {
-    const { data } = await supabase
-      .from("payment_proofs")
-      .select(
-        "id,payment_id,storage_path,original_filename,mime_type,file_size_bytes,verification_status,verified_at,created_at",
-      )
-      .in("payment_id", paymentIds)
-      .order("created_at", { ascending: false });
-
-    proofs = (data ?? []) as ProofRow[];
-  }
-
-  const latestProofByPayment = new Map<string, ProofRow>();
-  for (const proof of proofs) {
-    if (!latestProofByPayment.has(proof.payment_id)) {
-      latestProofByPayment.set(proof.payment_id, proof);
-    }
-  }
-
-  const signedProofUrls = new Map<string, string>();
-  for (const proof of latestProofByPayment.values()) {
-    const { data } = await supabase.storage
-      .from("payment-proofs")
-      .createSignedUrl(proof.storage_path, 60 * 10);
-
-    if (data?.signedUrl) {
-      signedProofUrls.set(proof.id, data.signedUrl);
-    }
-  }
-
   const params = await searchParams;
+  const search = value(params.search);
+  const status = value(params.status) || "all";
+  const page = pageValue(params.page);
+  const success = value(params.success);
+  const error = value(params.error);
 
-  return (
-    <section className="probee-section">
-      <Container>
-        <div className="max-w-4xl">
-          <p className="probee-label">Payments</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">
-            Manual bank transfer
-          </h1>
-          <p className="mt-4 text-base leading-7 text-text-secondary">
-            Review customer payment references and proofs using the existing staff authorization layer.
-          </p>
-        </div>
+  try {
+    const result = await getAdminPayments({ search, status, page, pageSize: 20 });
+    const proofIds = result.items
+      .map((item) => (item.proof && typeof item.proof === "object" ? String((item.proof as Record<string, unknown>).id ?? "") : ""))
+      .filter(Boolean);
+    const proofUrls = await getAdminPaymentProofUrls(proofIds);
 
-        {params.success ? (
-          <Surface className="mt-6 border border-emerald-300/20 bg-emerald-300/5 p-4">
-            <p className="text-sm text-emerald-100">{params.success}</p>
-          </Surface>
-        ) : null}
-        {params.error ? (
-          <Surface className="mt-6 border border-red-300/20 bg-red-300/5 p-4">
-            <p className="text-sm text-red-100">{params.error}</p>
-          </Surface>
-        ) : null}
-
-        {isAdmin ? (
-          <Surface className="mt-8 p-6 sm:p-8">
-            <div>
-              <p className="probee-label">Bank transfer settings</p>
-              <h2 className="mt-2 text-xl font-semibold">
-                Customer-facing payment instructions
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-text-muted">
-                Only active settings are visible to authenticated customers.
+    return (
+      <section className="probee-section">
+        <Container>
+          <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+            <div className="max-w-4xl">
+              <p className="probee-label">Payments</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">
+                Payment verification
+              </h1>
+              <p className="mt-4 text-base leading-7 text-text-secondary">
+                Staff-only review of manual bank-transfer submissions. Payment verification remains independent from order status.
               </p>
             </div>
+          </div>
 
-            <form action={saveManualBankTransferSettingsAction} className="mt-6 grid gap-5">
-              <label className="flex min-h-11 items-center justify-between gap-4 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-4">
-                <span>
-                  <span className="block text-sm font-semibold">Manual bank transfer</span>
-                  <span className="block text-xs text-text-muted">Enable customer payment submissions.</span>
-                </span>
-                <input
-                  type="checkbox"
-                  name="enabled"
-                  defaultChecked={Boolean(settings?.enabled)}
-                  className="size-5 accent-[var(--probee-gold)]"
-                />
-              </label>
+          {success ? (
+            <Surface className="mt-6 border-emerald-300/20 bg-emerald-300/5 p-4"><p className="text-sm text-emerald-100">{success}</p></Surface>
+          ) : null}
+          {error ? (
+            <Surface className="mt-6 border-red-300/20 bg-red-300/5 p-4" role="alert"><p className="text-sm text-red-100">{error}</p></Surface>
+          ) : null}
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm font-medium text-text-secondary">
-                  Bank name
-                  <input
-                    name="bankName"
-                    defaultValue={settings?.bank_name ?? ""}
-                    maxLength={120}
-                    className="min-h-11 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium text-text-secondary">
-                  Account name
-                  <input
-                    name="accountName"
-                    defaultValue={settings?.account_name ?? ""}
-                    maxLength={120}
-                    className="min-h-11 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium text-text-secondary">
-                  Account number
-                  <input
-                    name="accountNumber"
-                    defaultValue={settings?.account_number ?? ""}
-                    maxLength={120}
-                    className="min-h-11 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium text-text-secondary">
-                  Branch
-                  <input
-                    name="branch"
-                    defaultValue={settings?.branch ?? ""}
-                    maxLength={120}
-                    className="min-h-11 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium text-text-secondary sm:col-span-2">
-                  Bank code / SWIFT
-                  <input
-                    name="bankCodeSwift"
-                    defaultValue={settings?.bank_code_swift ?? ""}
-                    maxLength={120}
-                    className="min-h-11 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
-                  />
-                </label>
-              </div>
-
+          <Surface className="mt-8 p-4 sm:p-5">
+            <form className="grid gap-3 md:grid-cols-[1fr_220px_auto]">
               <label className="grid gap-2 text-sm font-medium text-text-secondary">
-                Payment instructions
-                <textarea
-                  name="paymentInstructions"
-                  defaultValue={settings?.payment_instructions ?? ""}
-                  maxLength={5000}
-                  rows={6}
-                  className="rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 py-3 text-sm leading-6 text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
-                />
+                Search
+                <input name="search" defaultValue={search} placeholder="Order, customer or payment reference" className="min-h-11 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary" />
               </label>
-
-              <button
-                type="submit"
-                className="probee-focus-ring inline-flex min-h-11 w-fit items-center justify-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover"
-              >
-                Save bank transfer settings
-              </button>
+              <label className="grid gap-2 text-sm font-medium text-text-secondary">
+                Payment status
+                <select name="status" defaultValue={status} className="min-h-11 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary">
+                  {["all","pending","paid","rejected","failed","refunded"].map((item) => <option key={item} value={item}>{item}</option>)}
+                </select>
+              </label>
+              <div className="flex items-end"><button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse">Apply filters</button></div>
             </form>
-
-            <p className="mt-4 text-xs leading-5 text-text-muted">
-              Updated by the currently authenticated administrator: {staff.user.email ?? "account"}
-            </p>
           </Surface>
-        ) : (
-          <Surface className="mt-8 p-6">
-            <p className="text-sm text-text-muted">
-              Bank-transfer settings are editable only by authorized administrators.
-            </p>
-          </Surface>
-        )}
 
-        <div className="mt-8 grid gap-4">
-          {paymentsError ? (
-            <Surface className="p-6">
-              <p className="text-sm text-red-200">
-                Payment records could not be loaded.
-              </p>
-            </Surface>
+          <div className="mt-8 grid gap-4">
+            {result.items.map((item) => {
+              const payment = item as Record<string, unknown>;
+              const proof = payment.proof && typeof payment.proof === "object" ? payment.proof as Record<string, unknown> : null;
+              const proofId = proof ? String(proof.id ?? "") : "";
+              const proofUrl = proofId ? proofUrls.get(proofId) : undefined;
+              const paymentStatus = String(payment.paymentStatus ?? "unknown");
+
+              return (
+                <Surface key={String(payment.id)} className="p-5 sm:p-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0">
+                      <p className="probee-label">Order {String(payment.orderReference ?? "Unknown")}</p>
+                      <h2 className="mt-2 text-lg font-semibold">{String(payment.customerName || payment.customerEmail || "Customer")}</h2>
+                      <p className="mt-1 text-sm text-text-muted">{String(payment.customerEmail || "No email")}</p>
+                    </div>
+                    <AdminStatus label={paymentStatus} tone={tone(paymentStatus)} />
+                  </div>
+
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div><p className="text-xs text-text-muted">Amount</p><p className="mt-1 font-semibold text-gold">{money(payment.amount, String(payment.currency ?? "USD"))}</p></div>
+                    <div><p className="text-xs text-text-muted">Payment reference</p><p className="mt-1 text-sm">{String(payment.paymentReference || "Not supplied")}</p></div>
+                    <div><p className="text-xs text-text-muted">Submitted</p><p className="mt-1 text-sm">{date(payment.createdAt)}</p></div>
+                    <div><p className="text-xs text-text-muted">Verified</p><p className="mt-1 text-sm">{date(payment.verifiedAt)}</p></div>
+                    <div><p className="text-xs text-text-muted">Order status</p><p className="mt-1 text-sm">{String(payment.orderStatus ?? "Unknown")}</p></div>
+                    <div><p className="text-xs text-text-muted">Currency</p><p className="mt-1 text-sm">{String(payment.currency ?? "—")}</p></div>
+                  </div>
+
+                  {proof ? (
+                    <div className="mt-5 rounded-lg border border-[var(--probee-border-subtle)] bg-surface-2 p-4">
+                      <p className="text-xs uppercase tracking-[0.08em] text-text-muted">Payment proof</p>
+                      <p className="mt-1 text-sm text-text-primary">{String(proof.originalFilename || "Uploaded proof")}</p>
+                      <p className="mt-1 text-xs text-text-muted">{String(proof.mimeType || "Unknown type")} · {String(proof.fileSizeBytes || 0)} bytes · {String(proof.verificationStatus || "pending")}</p>
+                      {proofUrl ? <a href={proofUrl} target="_blank" rel="noreferrer" className="probee-focus-ring mt-3 inline-flex min-h-10 items-center rounded-lg border border-[var(--probee-border-default)] px-3 text-xs font-semibold">View proof securely</a> : null}
+                    </div>
+                  ) : (
+                    <div className="mt-5 rounded-lg border border-dashed border-[var(--probee-border-default)] p-4 text-sm text-text-muted">No payment proof attached.</div>
+                  )}
+
+                  {paymentStatus === "pending" ? (
+                    <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                      <form action={markManualPaymentPaidAction}><input type="hidden" name="paymentId" value={String(payment.id)} /><button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse sm:w-auto">Mark as paid</button></form>
+                      <form action={rejectManualPaymentAction}><input type="hidden" name="paymentId" value={String(payment.id)} /><button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg border border-red-300/20 bg-red-300/5 px-4 text-sm font-semibold text-red-100 sm:w-auto">Reject payment</button></form>
+                    </div>
+                  ) : null}
+                </Surface>
+              );
+            })}
+            {result.items.length === 0 ? <Surface className="p-8 text-center"><p className="font-semibold">No payment records found.</p><p className="mt-2 text-sm text-text-muted">Pending manual bank-transfer submissions will appear here.</p></Surface> : null}
+          </div>
+
+          {result.pageCount > 1 ? (
+            <nav className="mt-6 flex flex-wrap items-center justify-between gap-3" aria-label="Payment pagination">
+              <p className="text-sm text-text-muted">Page {result.page} of {result.pageCount}</p>
+              <div className="flex gap-2">
+                {result.page > 1 ? <Link href={pageHref(search, status, result.page - 1)} className="probee-focus-ring inline-flex min-h-10 items-center rounded-lg border border-[var(--probee-border-default)] px-3 text-sm font-semibold">Previous</Link> : null}
+                {result.page < result.pageCount ? <Link href={pageHref(search, status, result.page + 1)} className="probee-focus-ring inline-flex min-h-10 items-center rounded-lg border border-[var(--probee-border-default)] px-3 text-sm font-semibold">Next</Link> : null}
+              </div>
+            </nav>
           ) : null}
-
-          {paymentRows.length === 0 ? (
-            <Surface className="p-6">
-              <p className="text-sm font-semibold">No manual bank-transfer payments yet.</p>
-              <p className="mt-2 text-sm text-text-muted">
-                Customer submissions will appear here after the payment method is enabled.
-              </p>
-            </Surface>
-          ) : null}
-
-          {paymentRows.map((payment) => {
-            const order = Array.isArray(payment.order)
-              ? payment.order[0]
-              : payment.order;
-            const proof = latestProofByPayment.get(payment.id);
-            const proofUrl = proof ? signedProofUrls.get(proof.id) : null;
-
-            return (
-              <Surface key={payment.id} className="p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="probee-label">Order {order?.order_reference ?? "Unknown"}</p>
-                    <h2 className="mt-2 text-lg font-semibold">
-                      {order?.customer_name || order?.customer_email || "Customer"}
-                    </h2>
-                    <p className="mt-1 text-sm text-text-muted">
-                      {order?.customer_email ?? "No email"}
-                    </p>
-                  </div>
-
-                  <span className="rounded-full border border-[var(--probee-border-default)] bg-surface-2 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {payment.payment_status}
-                  </span>
-                </div>
-
-                <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-                  <div>
-                    <p className="text-xs text-text-muted">Amount</p>
-                    <p className="mt-1 font-semibold text-gold">
-                      {formatAmount(payment.amount, payment.currency)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-muted">Payment reference</p>
-                    <p className="mt-1 font-medium text-text-primary">
-                      {payment.external_reference ?? "Not supplied"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-muted">Order status</p>
-                    <p className="mt-1 text-text-secondary">
-                      {order?.order_status ?? "Unknown"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-muted">Submitted</p>
-                    <p className="mt-1 text-text-secondary">
-                      {new Date(payment.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                {proof ? (
-                  <div className="mt-5 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-subtle)] bg-surface-2 p-4">
-                    <p className="text-xs text-text-muted">Latest proof</p>
-                    <p className="mt-1 text-sm text-text-primary">
-                      {proof.original_filename ?? "Payment proof"} · {formatFileSize(proof.file_size_bytes)}
-                    </p>
-                    <p className="mt-1 text-xs text-text-muted">
-                      Verification: {proof.verification_status}
-                    </p>
-                    {proofUrl ? (
-                      <a
-                        href={proofUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="probee-focus-ring mt-3 inline-flex min-h-10 items-center rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-background px-3 text-xs font-semibold text-text-primary hover:border-[var(--probee-border-strong)]"
-                      >
-                        View proof securely
-                      </a>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="mt-5 rounded-[var(--probee-radius-md)] border border-dashed border-[var(--probee-border-default)] p-4 text-sm text-text-muted">
-                    No payment proof is attached.
-                  </div>
-                )}
-
-                {payment.payment_status === "pending" ? (
-                  <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                    <form action={markManualPaymentPaidAction}>
-                      <input type="hidden" name="paymentId" value={payment.id} />
-                      <button
-                        type="submit"
-                        className="probee-focus-ring inline-flex min-h-11 w-full items-center justify-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover sm:w-auto"
-                      >
-                        Mark as paid
-                      </button>
-                    </form>
-                    <form action={rejectManualPaymentAction}>
-                      <input type="hidden" name="paymentId" value={payment.id} />
-                      <button
-                        type="submit"
-                        className="probee-focus-ring inline-flex min-h-11 w-full items-center justify-center rounded-[var(--probee-radius-md)] border border-red-300/20 bg-red-300/5 px-4 text-sm font-semibold text-red-100 hover:bg-red-300/10 sm:w-auto"
-                      >
-                        Reject payment
-                      </button>
-                    </form>
-                  </div>
-                ) : null}
-              </Surface>
-            );
-          })}
-        </div>
-      </Container>
-    </section>
-  );
+        </Container>
+      </section>
+    );
+  } catch (loadError) {
+    return <section className="probee-section"><Container><p className="probee-label">Payments</p><h1 className="mt-2 text-3xl font-semibold">Payment verification</h1><Surface className="mt-8 border-red-300/20 bg-red-300/5 p-6" role="alert"><p className="font-semibold text-red-100">Payment records could not be loaded.</p><p className="mt-2 text-sm text-red-100/70">{loadError instanceof Error ? loadError.message : "Please refresh and try again."}</p></Surface></Container></section>;
+  }
 }

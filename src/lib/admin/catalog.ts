@@ -177,6 +177,7 @@ export async function getAdminProductList({
   published = "all",
   active = "all",
   featured = "all",
+  categoryId = "",
   page = 1,
   pageSize = 12,
 }: {
@@ -184,6 +185,7 @@ export async function getAdminProductList({
   published?: "all" | "true" | "false";
   active?: "all" | "true" | "false";
   featured?: "all" | "true" | "false";
+  categoryId?: string;
   page?: number;
   pageSize?: number;
 } = {}): Promise<AdminProductListResult> {
@@ -206,6 +208,7 @@ export async function getAdminProductList({
     .range(from, to);
 
   const safeSearch = sanitizeSearchTerm(search);
+  const safeCategoryId = categoryId && /^[0-9a-f-]{36}$/i.test(categoryId) ? categoryId : "";
 
   if (safeSearch) {
     query = query.or(
@@ -223,6 +226,29 @@ export async function getAdminProductList({
 
   if (featured !== "all") {
     query = query.eq("is_featured", featured === "true");
+  }
+
+  if (safeCategoryId) {
+    const { data: categoryProducts, error: categoryFilterError } = await supabase
+      .from("product_categories")
+      .select("product_id")
+      .eq("category_id", safeCategoryId);
+
+    if (categoryFilterError) {
+      throw friendlyReadError();
+    }
+
+    const matchingIds = [...new Set((categoryProducts ?? []).map((row) => row.product_id))];
+    if (matchingIds.length === 0) {
+      return {
+        items: [],
+        total: 0,
+        page: safePage,
+        pageSize: safePageSize,
+        pageCount: 1,
+      };
+    }
+    query = query.in("id", matchingIds);
   }
 
   const { data: products, error, count } = await query;

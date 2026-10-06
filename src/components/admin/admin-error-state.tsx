@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Surface } from "@/components/ui";
 
 export function AdminErrorState({
-  title = "Unable to load catalog data",
+  title = "Unable to load administration data",
   message,
 }: {
   title?: string;
@@ -13,10 +13,10 @@ export function AdminErrorState({
       <p className="font-semibold text-red-100">{title}</p>
       <p className="mt-2 text-sm leading-6 text-red-200/80">{message}</p>
       <Link
-        href="/admin/products"
+        href="/admin"
         className="probee-focus-ring mt-5 inline-flex min-h-11 items-center rounded-[var(--probee-radius-md)] bg-gold px-4 text-sm font-semibold text-text-inverse hover:bg-gold-hover"
       >
-        Return to products
+        Return to dashboard
       </Link>
     </Surface>
   );

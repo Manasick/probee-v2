@@ -18,6 +18,20 @@ function getStatus(
     : "pending";
 }
 
+function pageValue(value: string | string[] | undefined): number {
+  const raw = Array.isArray(value) ? value[0] ?? "" : value ?? "";
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+}
+
+function pageHref(status: string, search: string, page: number): string {
+  const query = new URLSearchParams();
+  if (status !== "pending") query.set("status", status);
+  if (search) query.set("search", search);
+  query.set("page", String(page));
+  return "/admin/reviews?" + query.toString();
+}
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
     dateStyle: "medium",
@@ -41,7 +55,9 @@ export default async function AdminReviewsPage({
     ? params.success[0]
     : params.success;
   const error = Array.isArray(params.error) ? params.error[0] : params.error;
-  const result = await getAdminReviews(status);
+  const search = Array.isArray(params.search) ? params.search[0] ?? "" : params.search ?? "";
+  const page = pageValue(params.page);
+  const result = await getAdminReviews(status, page, search);
 
   return (
     <section className="probee-section">
@@ -57,15 +73,28 @@ export default async function AdminReviewsPage({
           </p>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-2">
+        <Surface className="mt-6 p-4 sm:p-5">
+          <form className="flex flex-col gap-3 sm:flex-row">
+            <label className="sr-only" htmlFor="review-search">Search reviews</label>
+            <input
+              id="review-search"
+              name="search"
+              defaultValue={search}
+              placeholder="Product, reviewer, title or review text"
+              className="min-h-11 flex-1 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]"
+            />
+            {status !== "pending" ? <input type="hidden" name="status" value={status} /> : null}
+            <button type="submit" className="probee-focus-ring min-h-11 rounded-[var(--probee-radius-md)] bg-gold px-5 text-sm font-semibold text-text-inverse">
+              Search
+            </button>
+          </form>
+        </Surface>
+
+        <div className="mt-6 flex flex-wrap gap-2">
           {STATUS_FILTERS.map((item) => (
             <Link
               key={item}
-              href={
-                item === "pending"
-                  ? "/admin/reviews"
-                  : "/admin/reviews?status=" + item
-              }
+              href={pageHref(item, search, 1)}
               className={[
                 "probee-focus-ring rounded-full border px-3 py-1.5 text-xs font-semibold capitalize",
                 status === item
@@ -175,6 +204,23 @@ export default async function AdminReviewsPage({
             </Surface>
           ) : null}
         </div>
+        {result.pageCount > 1 ? (
+          <nav className="mt-6 flex flex-wrap items-center justify-between gap-3" aria-label="Review pagination">
+            <p className="text-sm text-text-muted">Page {result.page} of {result.pageCount}</p>
+            <div className="flex gap-2">
+              {result.page > 1 ? (
+                <Link href={pageHref(status, search, result.page - 1)} className="probee-focus-ring inline-flex min-h-10 items-center rounded-lg border border-[var(--probee-border-default)] px-3 text-sm font-semibold">
+                  Previous
+                </Link>
+              ) : null}
+              {result.page < result.pageCount ? (
+                <Link href={pageHref(status, search, result.page + 1)} className="probee-focus-ring inline-flex min-h-10 items-center rounded-lg border border-[var(--probee-border-default)] px-3 text-sm font-semibold">
+                  Next
+                </Link>
+              ) : null}
+            </div>
+          </nav>
+        ) : null}
       </Container>
     </section>
   );

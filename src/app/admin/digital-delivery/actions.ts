@@ -250,3 +250,44 @@ export async function setDigitalAssetActiveAction(formData: FormData) {
   revalidatePath("/admin/digital-delivery/assets");
   revalidatePath("/admin/digital-delivery");
 }
+
+export async function deleteDigitalAssetAction(formData: FormData) {
+  await requireStaff();
+
+  const assetId = formData.get("assetId");
+  if (typeof assetId !== "string" || !isUuid(assetId)) return;
+
+  const supabase = await createClient();
+  const { data: asset } = await supabase
+    .from("digital_delivery_assets")
+    .select("id,storage_path")
+    .eq("id", assetId)
+    .maybeSingle();
+
+  if (!asset) return;
+
+  const { count: linkedCount } = await supabase
+    .from("digital_entitlement_assets")
+    .select("asset_id", { count: "exact", head: true })
+    .eq("asset_id", assetId);
+
+  if ((linkedCount ?? 0) > 0) {
+    return;
+  }
+
+  const { error: storageError } = await supabase.storage
+    .from(DIGITAL_DELIVERY_BUCKET)
+    .remove([asset.storage_path]);
+
+  if (storageError) {
+    return;
+  }
+
+  await supabase
+    .from("digital_delivery_assets")
+    .delete()
+    .eq("id", assetId);
+
+  revalidatePath("/admin/digital-delivery/assets");
+  revalidatePath("/admin/digital-delivery");
+}

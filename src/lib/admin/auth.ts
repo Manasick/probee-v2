@@ -28,10 +28,24 @@ export async function getStaffContext(): Promise<StaffContext | null> {
   return { user };
 }
 
-export async function requireStaff(): Promise<StaffContext> {
+export async function requireStaff(
+  nextPath = "/admin",
+): Promise<StaffContext> {
   const context = await getStaffContext();
 
   if (!context) {
+    const encodedNext = encodeURIComponent(
+      nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/admin",
+    );
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect("/login?next=" + encodedNext);
+    }
+
     redirect("/");
   }
 
