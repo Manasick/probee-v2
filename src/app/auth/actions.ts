@@ -9,6 +9,12 @@ import {
   safeNextPath,
 } from "@/lib/auth/urls";
 import { ensureProfile } from "@/lib/auth/server";
+import {
+  isValidEmail,
+  normalizeEmail,
+  validatePassword,
+  validatePasswordConfirmation,
+} from "@/lib/auth/validation";
 
 export interface AuthActionState {
   ok: boolean;
@@ -20,24 +26,6 @@ export const INITIAL_AUTH_STATE: AuthActionState = {
   ok: false,
   message: "",
 };
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function normalizedEmail(value: FormDataEntryValue | null): string {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
-
-function passwordError(password: string): string | null {
-  if (password.length < 8) {
-    return "Password must be at least 8 characters.";
-  }
-
-  if (password.length > 128) {
-    return "Password must be 128 characters or fewer.";
-  }
-
-  return null;
-}
 
 function getAuthErrorMessage(error: AuthError): string {
   const message = error.message.toLowerCase();
@@ -61,7 +49,10 @@ export async function signInAction(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  const email = normalizedEmail(formData.get("email"));
+  const emailValue = typeof formData.get("email") === "string"
+    ? String(formData.get("email"))
+    : "";
+  const email = normalizeEmail(emailValue);
   const password = typeof formData.get("password") === "string"
     ? String(formData.get("password"))
     : "";
@@ -71,7 +62,7 @@ export async function signInAction(
       : "/account",
   );
 
-  if (!EMAIL_PATTERN.test(email)) {
+  if (!isValidEmail(email)) {
     return {
       ok: false,
       message: "Enter a valid email address.",
@@ -115,7 +106,10 @@ export async function signUpAction(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  const email = normalizedEmail(formData.get("email"));
+  const emailValue = typeof formData.get("email") === "string"
+    ? String(formData.get("email"))
+    : "";
+  const email = normalizeEmail(emailValue);
   const password = typeof formData.get("password") === "string"
     ? String(formData.get("password"))
     : "";
@@ -124,14 +118,14 @@ export async function signUpAction(
       ? String(formData.get("confirmPassword"))
       : "";
 
-  if (!EMAIL_PATTERN.test(email)) {
+  if (!isValidEmail(email)) {
     return {
       ok: false,
       message: "Enter a valid email address.",
     };
   }
 
-  const passwordValidation = passwordError(password);
+  const passwordValidation = validatePassword(password);
 
   if (passwordValidation) {
     return {
@@ -140,10 +134,15 @@ export async function signUpAction(
     };
   }
 
-  if (password !== confirmPassword) {
+  const confirmationValidation = validatePasswordConfirmation(
+    password,
+    confirmPassword,
+  );
+
+  if (confirmationValidation) {
     return {
       ok: false,
-      message: "Password confirmation does not match.",
+      message: confirmationValidation,
     };
   }
 
@@ -176,7 +175,10 @@ export async function resendVerificationAction(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  const email = normalizedEmail(formData.get("email"));
+  const emailValue = typeof formData.get("email") === "string"
+    ? String(formData.get("email"))
+    : "";
+  const email = normalizeEmail(emailValue);
 
   if (!EMAIL_PATTERN.test(email)) {
     return {
@@ -243,7 +245,7 @@ export async function resetPasswordAction(
       ? String(formData.get("confirmPassword"))
       : "";
 
-  const passwordValidation = passwordError(password);
+  const passwordValidation = validatePassword(password);
 
   if (passwordValidation) {
     return {
@@ -252,10 +254,15 @@ export async function resetPasswordAction(
     };
   }
 
-  if (password !== confirmPassword) {
+  const confirmationValidation = validatePasswordConfirmation(
+    password,
+    confirmPassword,
+  );
+
+  if (confirmationValidation) {
     return {
       ok: false,
-      message: "Password confirmation does not match.",
+      message: confirmationValidation,
     };
   }
 
