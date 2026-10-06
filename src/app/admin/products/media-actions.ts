@@ -4,7 +4,7 @@ import type { AdminProductMedia } from "@/lib/catalog/types";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin/auth";
 import {
-  getProductImageExtension,
+  getProductMediaPath,
   isSafeProductMediaPath,
   isSupportedProductImageMimeType,
   MAX_PRODUCT_MEDIA_FILE_SIZE,
@@ -216,14 +216,7 @@ export async function prepareProductMediaUploadAction(
     };
   }
 
-  const extension = getProductImageExtension(mimeType);
-  const storagePath =
-    "products/" +
-    productId +
-    "/" +
-    crypto.randomUUID() +
-    "." +
-    extension;
+  const storagePath = getProductMediaPath(productId, mimeType);
 
   const { data, error } = await supabase.storage
     .from(PRODUCT_MEDIA_BUCKET)
