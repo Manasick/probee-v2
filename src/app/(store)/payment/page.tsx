@@ -68,26 +68,25 @@ export default async function ManualPaymentPage({
     );
   }
 
-  const [{ data: payment }, { data: proof }] = await Promise.all([
-    supabase
-      .from("payments")
-      .select("id,payment_status,external_reference,amount,currency")
-      .eq("order_id", order.id)
-      .eq("payment_method", "manual_bank_transfer")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from("payment_proofs")
-      .select("original_filename,file_size_bytes,verification_status")
-      .eq(
-        "payment_id",
-        payment?.id ?? "00000000-0000-0000-0000-000000000000",
-      )
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const { data: payment } = await supabase
+    .from("payments")
+    .select("id,payment_status,external_reference,amount,currency")
+    .eq("order_id", order.id)
+    .eq("payment_method", "manual_bank_transfer")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: proof } = await supabase
+    .from("payment_proofs")
+    .select("original_filename,file_size_bytes,verification_status")
+    .eq(
+      "payment_id",
+      payment?.id ?? "00000000-0000-0000-0000-000000000000",
+    )
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   const orderIsIneligible =
     order.order_status === "cancelled" ||
