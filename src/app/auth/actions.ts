@@ -294,3 +294,30 @@ export async function signOutAction(): Promise<void> {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export async function adminSignInAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = normalizeEmail(typeof formData.get("email") === "string" ? String(formData.get("email")) : "");
+  const password = typeof formData.get("password") === "string" ? String(formData.get("password")) : "";
+
+  if (!isValidEmail(email) || !password) {
+    return { ok: false, message: "Enter your authorized staff email and password." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error || !data.user) {
+    return { ok: false, message: "Unable to sign in to the ProBee operations console." };
+  }
+
+  const { data: isStaff } = await supabase.rpc("current_user_is_staff");
+  if (!isStaff) {
+    await supabase.auth.signOut();
+    return { ok: false, message: "This account is not authorized for the ProBee operations console." };
+  }
+
+  redirect("/admin");
+}
