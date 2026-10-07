@@ -21,6 +21,8 @@
   --probee-gold-hover: #ccb57f;
   --probee-gold-soft: rgba(185, 160, 106, 0.14);
   --probee-gold-muted: rgba(185, 160, 106, 0.08);
+  --probee-gold-border: rgba(185, 160, 106, 0.32);
+  --probee-gold-bright: #e0c47a;
 
   --probee-focus-ring: rgba(204, 181, 127, 0.42);
 
