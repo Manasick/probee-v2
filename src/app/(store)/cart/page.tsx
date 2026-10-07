@@ -3,10 +3,10 @@ import { CartView } from "@/components/store/cart-view";
 
 export default function CartPage() {
   return (
-    <section className="probee-section">
+    <section className="probee-section probee-cart-page">
       <Container>
         <div className="max-w-3xl">
-          <p className="probee-label">Cart</p>
+          <p className="probee-label">Your ProBee selection</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">
             Your cart
           </h1>
