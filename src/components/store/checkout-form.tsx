@@ -457,11 +457,11 @@ export function CheckoutForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <form onSubmit={handleSubmit} className="probee-checkout-layout grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
       <div className="space-y-6">
-        <Surface className="p-6 sm:p-8">
+        <Surface className="probee-checkout-card p-6 sm:p-8">
           <div>
-            <p className="probee-label">Customer information</p>
+            <p className="probee-label">Step 01 · Customer</p>
             <h2 className="mt-2 text-xl font-semibold">Who should receive this order?</h2>
           </div>
 
@@ -526,10 +526,10 @@ export function CheckoutForm({
           </div>
         </Surface>
 
-        <Surface className="p-6 sm:p-8">
+        <Surface className="probee-checkout-card p-6 sm:p-8">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="probee-label">Order review</p>
+              <p className="probee-label">Step 02 · Review</p>
               <h2 className="mt-2 text-xl font-semibold">Selected plans</h2>
             </div>
             <Link
@@ -622,8 +622,8 @@ export function CheckoutForm({
       </div>
 
       <aside className="lg:sticky lg:top-24 lg:h-fit">
-        <Surface className="p-6 sm:p-8">
-          <p className="probee-label">Secure checkout</p>
+        <Surface className="probee-checkout-summary p-6 sm:p-8">
+          <p className="probee-label">Step 03 · Secure checkout</p>
           <h2 className="mt-2 text-xl font-semibold">Order total</h2>
 
           {unavailable.length ? (
