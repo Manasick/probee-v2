@@ -240,7 +240,7 @@ export function CartView() {
         : "Unavailable";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+    <div className="probee-cart-layout grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
       <div className="space-y-4">
         {unavailable.length ? (
           <Surface tone="muted" className="p-5">
@@ -270,7 +270,7 @@ export function CartView() {
             Math.round(entry.plan.price * entry.item.quantity * 100) / 100;
 
           return (
-            <Surface key={cartItemKey(entry.item)} className="p-4 sm:p-5">
+            <Surface key={cartItemKey(entry.item)} className="probee-cart-item p-4 sm:p-5">
               <div className="flex gap-4">
                 <Link
                   href={`/products/${entry.product.slug}`}
@@ -384,9 +384,9 @@ export function CartView() {
       </div>
 
       <aside className="lg:sticky lg:top-24 lg:h-fit">
-        <Surface className="p-6">
+        <Surface className="probee-cart-summary p-6 sm:p-7">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold">Cart summary</h2>
+            <div><p className="probee-label">Your selection</p><h2 className="mt-1 text-xl font-semibold">Cart summary</h2></div>
             <span className="text-sm text-text-muted">
               {itemCount} item{itemCount === 1 ? "" : "s"}
             </span>
@@ -418,7 +418,7 @@ export function CartView() {
               Prices and totals shown here come from the current public catalog. Checkout revalidates them again on the server before creating the order.
             </p>
 
-            <div className="mt-6 grid gap-3">
+            <div className="mt-7 grid gap-3">
               <Link
                 href="/checkout"
                 aria-disabled={unavailable.length > 0}
