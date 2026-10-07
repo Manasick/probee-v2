@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Container, Surface, BrandMark } from "@/components/ui";
+import { BrandMark, Container } from "@/components/ui";
 import { CategoryGrid } from "@/components/store/category-grid";
 import { ProductGrid } from "@/components/store/product-grid";
 import {
