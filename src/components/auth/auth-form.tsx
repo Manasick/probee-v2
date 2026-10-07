@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Button, Surface } from "@/components/ui";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   forgotPasswordAction,
   resendVerificationAction,
@@ -92,7 +93,9 @@ export function AuthForm({
   if (mode === "login") {
     return (
       <form action={action} className="grid gap-5">
-        {initialMessage ? <FormMessage state={state} /> : null}\n\n        <GoogleSignInButton next={next} />
+        {initialMessage ? <FormMessage state={state} /> : null}
+
+        <GoogleSignInButton next={next} />
         {state.message && !initialMessage ? <FormMessage state={state} /> : null}
 
         <input type="hidden" name="next" value={next} />
