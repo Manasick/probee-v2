@@ -16,6 +16,9 @@ const supabaseImagePattern = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [{ source: "/admin/login", destination: "/admin-login" }];
+  },
   poweredByHeader: false,
   images: supabaseImagePattern
     ? { remotePatterns: [supabaseImagePattern] }
