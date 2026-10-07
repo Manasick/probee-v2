@@ -262,3 +262,11 @@ a {
 .probee-account-page .probee-account-stats>div:hover{transform:translateY(-2px);border-color:var(--probee-gold-border);box-shadow:0 14px 40px rgba(0,0,0,.24)}
 .probee-account-page .probee-section,.probee-account-page [role="status"]{scroll-margin-top:6rem}
 @media (prefers-reduced-motion:reduce){.probee-account-page .probee-account-stats>div{transition:none}.probee-account-page .probee-account-stats>div:hover{transform:none}}
+
+
+/* Global interaction polish */
+.probee-focus-ring{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background-color .2s ease}
+.probee-focus-ring:hover{transform:translateY(-1px)}
+button:not(:disabled),a.probee-focus-ring{touch-action:manipulation}
+@media (max-width:640px){.probee-focus-ring{min-height:2.75rem}.probee-admin-nav-link{min-height:3rem}}
+@media (prefers-reduced-motion:reduce){.probee-focus-ring{transition:none}.probee-focus-ring:hover{transform:none}}
