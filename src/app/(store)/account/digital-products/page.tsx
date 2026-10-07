@@ -28,7 +28,7 @@ export default async function DigitalProductsPage() {
   const { entitlements, error } = await getMyDigitalEntitlements();
 
   return (
-    <section className="probee-section">
+    <section className="probee-section probee-digital-page">
       <Container>
         <div className="max-w-4xl">
           <p className="probee-label">Digital products</p>
@@ -70,7 +70,7 @@ export default async function DigitalProductsPage() {
             />
           </div>
         ) : (
-          <div className="mt-8 grid gap-6">
+          <div className="probee-digital-grid mt-8 grid gap-6">
             {entitlements.map((entitlement) => (
               <Surface key={entitlement.id} className="p-6 sm:p-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
