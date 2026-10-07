@@ -131,7 +131,7 @@ export default async function ProductDetailsPage({
       : 1;
 
   return (
-    <section className="probee-section">
+    <section className="probee-section probee-product-detail-page">
       <Container>
         <nav className="mb-8 text-sm text-text-muted" aria-label="Breadcrumb">
           <ol className="flex flex-wrap items-center gap-2">
@@ -166,7 +166,8 @@ export default async function ProductDetailsPage({
             media={product.media}
           />
 
-          <div>
+          <div className="probee-product-summary">
+            <div className="probee-product-kicker"><span className="probee-product-kicker-line" /> Premium ProBee selection</div>
             {product.category ? (
               <p className="probee-label">{product.category.name}</p>
             ) : null}
@@ -195,17 +196,13 @@ export default async function ProductDetailsPage({
               ) : null}
             </div>
 
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold">Choose your plan</h2>
-              <p className="mt-2 text-sm text-text-muted">
-                Options shown here are loaded from the active catalog configuration.
-              </p>
-              <div className="mt-4">
-                <ProductPlanSelector
-                  productId={product.id}
-                  plans={purchasablePlans}
-                />
+            <div className="probee-plan-panel mt-9">
+              <div className="mb-5">
+                <p className="probee-label">Configure your package</p>
+                <h2 className="mt-1 text-xl font-semibold">Choose your plan</h2>
+                <p className="mt-2 text-sm text-text-muted">Every option below is controlled from the ProBee admin catalog.</p>
               </div>
+              <ProductPlanSelector productId={product.id} plans={purchasablePlans} />
             </div>
           </div>
         </div>
