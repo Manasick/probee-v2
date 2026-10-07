@@ -256,3 +256,9 @@ a {
 .probee-admin-mobile-menu{border-top:1px solid var(--probee-border-subtle);padding:.7rem 0 1rem}
 .probee-admin-mobile-user{display:grid;gap:.65rem;border-top:1px solid var(--probee-border-subtle);margin-top:.5rem;padding-top:.75rem}
 .probee-admin-mobile-user p{padding:0 .8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;color:var(--probee-text-muted)}
+
+.probee-account-page .probee-account-stats>div{position:relative;overflow:hidden;border-color:var(--probee-border-subtle);background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.probee-account-page .probee-account-stats>div:after{content:"";position:absolute;right:-3rem;top:-3rem;width:8rem;height:8rem;border-radius:50%;background:radial-gradient(circle,rgba(226,184,77,.11),transparent 68%);pointer-events:none}
+.probee-account-page .probee-account-stats>div:hover{transform:translateY(-2px);border-color:var(--probee-gold-border);box-shadow:0 14px 40px rgba(0,0,0,.24)}
+.probee-account-page .probee-section,.probee-account-page [role="status"]{scroll-margin-top:6rem}
+@media (prefers-reduced-motion:reduce){.probee-account-page .probee-account-stats>div{transition:none}.probee-account-page .probee-account-stats>div:hover{transform:none}}
