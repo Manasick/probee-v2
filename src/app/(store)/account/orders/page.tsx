@@ -158,7 +158,7 @@ export default async function AccountOrdersPage({
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
-    <section className="probee-section">
+    <section className="probee-section probee-orders-page">
       <Container>
         <div className="max-w-4xl">
           <p className="probee-label">Orders</p>
