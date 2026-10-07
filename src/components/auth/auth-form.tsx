@@ -92,7 +92,7 @@ export function AuthForm({
   if (mode === "login") {
     return (
       <form action={action} className="grid gap-5">
-        {initialMessage ? <FormMessage state={state} /> : null}
+        {initialMessage ? <FormMessage state={state} /> : null}\n\n        <GoogleSignInButton next={next} />
         {state.message && !initialMessage ? <FormMessage state={state} /> : null}
 
         <input type="hidden" name="next" value={next} />
