@@ -77,7 +77,7 @@ export default async function AccountPage({
   const email = context.user.email ?? "Unknown";
 
   return (
-    <section className="probee-section">
+    <section className="probee-section probee-account-page">
       <Container>
         <div className="max-w-4xl">
           <p className="probee-label">Customer account</p>
@@ -161,7 +161,7 @@ export default async function AccountPage({
           </Surface>
         )}
 
-        <div id="overview" className="mt-6 grid scroll-mt-24 gap-4 sm:grid-cols-3">
+        <div id="overview" className="probee-account-stats mt-6 grid scroll-mt-24 gap-4 sm:grid-cols-3">
           {[
             ["Total orders", totalOrdersResult.count ?? 0],
             ["Current orders", activeOrdersResult.count ?? 0],
