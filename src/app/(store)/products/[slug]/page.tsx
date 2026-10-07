@@ -71,7 +71,7 @@ export default async function ProductDetailsPage({
 
   if (!product) {
     return (
-      <section className="probee-section">
+      <section className="probee-section probee-product-detail-page">
         <Container>
           <nav className="mb-6 text-sm text-text-muted" aria-label="Breadcrumb">
             <ol className="flex flex-wrap items-center gap-2">
@@ -159,7 +159,7 @@ export default async function ProductDetailsPage({
           </ol>
         </nav>
 
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+        <div className="probee-product-hero grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
           <ProductMediaGallery
             productName={product.name}
             coverUrl={product.coverUrl}
@@ -170,7 +170,7 @@ export default async function ProductDetailsPage({
             {product.category ? (
               <p className="probee-label">{product.category.name}</p>
             ) : null}
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em] sm:text-6xl">
               {product.name}
             </h1>
             {product.shortDescription ? (
@@ -179,7 +179,7 @@ export default async function ProductDetailsPage({
               </p>
             ) : null}
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               {price ? (
                 <span className="text-lg font-semibold text-gold">{price}</span>
               ) : null}
