@@ -8,9 +8,11 @@ interface ProductCardProps { product: CatalogProduct; priority?: boolean; }
 
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const price = formatProductPrice(product);
-  const planCount = product.plans.length;
-  const firstPlanDuration = product.plans[0]
-    ? formatDuration(product.plans[0].duration, product.plans[0].durationUnit)
+  const activePlans = product.plans.filter((plan) => plan.active !== false);
+  const planCount = activePlans.length;
+  const firstPlan = activePlans[0];
+  const firstPlanDuration = firstPlan
+    ? formatDuration(firstPlan.duration, firstPlan.durationUnit)
     : null;
 
   return (
@@ -23,7 +25,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               src={product.coverUrl}
               alt={product.name}
               fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06] group-focus-visible:scale-[1.03]"
               sizes="(min-width: 1280px) 30vw, (min-width: 640px) 45vw, 100vw"
               priority={priority}
             />
@@ -44,7 +46,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         <div className="p-5 sm:p-6">
           {product.category ? <p className="probee-label">{product.category.name}</p> : null}
           <div className="mt-2 flex items-start justify-between gap-4">
-            <h3 className="text-xl font-semibold tracking-tight transition-colors group-hover:text-gold sm:text-[1.35rem]">{product.name}</h3>
+            <h3 className="text-xl font-semibold tracking-tight transition-colors group-hover:text-gold group-focus-visible:text-gold sm:text-[1.35rem]">{product.name}</h3>
             <span className="mt-1 hidden text-xs text-text-muted sm:block">View</span>
           </div>
 

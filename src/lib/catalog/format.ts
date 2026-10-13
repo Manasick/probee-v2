@@ -32,6 +32,7 @@ export function getPlanPriceRange(
 ): { min: number; max: number; currency: string } | null {
   const activePlans = plans.filter(
     (plan) =>
+      plan.active !== false &&
       Number.isFinite(plan.price) &&
       plan.price >= 0 &&
       Boolean(plan.currency),

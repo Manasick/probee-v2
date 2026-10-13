@@ -272,3 +272,23 @@ a {
 button:not(:disabled),a.probee-focus-ring{touch-action:manipulation}
 @media (max-width:640px){.probee-focus-ring{min-height:2.75rem}.probee-admin-nav-link{min-height:3rem}}
 @media (prefers-reduced-motion:reduce){.probee-focus-ring{transition:none}.probee-focus-ring:hover{transform:none}}
+
+
+/* Catalog motion respects keyboard focus and reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  .probee-product-card,
+  .probee-product-media-shine,
+  .probee-product-arrow {
+    transition: none !important;
+  }
+
+  .probee-product-card:hover,
+  .probee-product-arrow,
+  .group:hover .probee-product-arrow {
+    transform: none !important;
+  }
+
+  .group:hover .probee-product-media-shine {
+    transform: translateX(-130%);
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CatalogCategory, CatalogProduct } from "@/lib/catalog/types";
 import { ProductGrid } from "@/components/store/product-grid";
 
@@ -14,6 +14,10 @@ export function CatalogBrowser({ products, categories, initialQuery = "" }: Cata
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("relevance");
+
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
 
   const visibleProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -30,7 +34,7 @@ export function CatalogBrowser({ products, categories, initialQuery = "" }: Cata
     });
 
     return filtered.sort((a, b) => {
-      if (sort === "newest") return (b.sortOrder ?? 0) - (a.sortOrder ?? 0);
+      if (sort === "catalog") return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
       const aPrice = Math.min(...a.plans.filter((plan) => plan.active !== false).map((plan) => plan.price), Number.POSITIVE_INFINITY);
       const bPrice = Math.min(...b.plans.filter((plan) => plan.active !== false).map((plan) => plan.price), Number.POSITIVE_INFINITY);
       if (sort === "price-low") return aPrice - bPrice;
@@ -70,7 +74,7 @@ export function CatalogBrowser({ products, categories, initialQuery = "" }: Cata
           </label>
           <select id="catalog-sort" value={sort} onChange={(event) => setSort(event.target.value)} className="min-h-11 w-full rounded-[var(--probee-radius-md)] border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary outline-none focus:border-gold focus:ring-2 focus:ring-[var(--probee-focus-ring)]">
             <option value="relevance">Featured first</option>
-            <option value="newest">Catalog order</option>
+            <option value="catalog">Catalog order</option>
             <option value="price-low">Price: low to high</option>
             <option value="price-high">Price: high to low</option>
           </select>
