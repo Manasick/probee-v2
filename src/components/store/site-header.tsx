@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "@/components/ui";
 import { useCart } from "@/lib/cart/provider";
 
@@ -22,8 +22,27 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { itemCount } = useCart();
+
+  useEffect(() => {
+    if (searchOpen) {
+      searchInputRef.current?.focus();
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+
+      setSearchOpen(false);
+      setMenuOpen(false);
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
 
   const accountLabel = accountEmail ? "Account" : "Sign in";
   const cartLabel = itemCount === 0
@@ -61,7 +80,10 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
               className="probee-header-icon probee-focus-ring"
               aria-label={searchOpen ? "Close search" : "Open search"}
               aria-expanded={searchOpen}
-              onClick={() => setSearchOpen((open) => !open)}
+              onClick={() => {
+                setSearchOpen((open) => !open);
+                setMenuOpen(false);
+              }}
             >
               <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="11" cy="11" r="6.5" />
@@ -101,7 +123,10 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
               aria-label={menuOpen ? "Close navigation" : "Open navigation"}
               aria-expanded={menuOpen}
               aria-controls="mobile-navigation"
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => {
+                setMenuOpen((open) => !open);
+                setSearchOpen(false);
+              }}
             >
               <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[1.2rem]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 {menuOpen ? (
@@ -141,6 +166,7 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
               </svg>
               <input
                 id="global-search"
+                ref={searchInputRef}
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
