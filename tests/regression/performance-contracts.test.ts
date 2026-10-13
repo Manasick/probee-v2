@@ -96,7 +96,7 @@ describe("production performance contracts", () => {
     const workflow = read(".github/workflows/step19-regression.yml");
     expect(workflow).toContain("if [ -f package-lock.json ]");
     expect(workflow).toContain("npm ci --no-audit --no-fund");
-    expect(workflow).toContain("npm install --no-audit --no-fund");
+    expect(workflow).toContain("npm install --legacy-peer-deps --no-audit --no-fund");
     expect(workflow).toContain("npm run typecheck");
     expect(workflow).not.toContain("SUPABASE_SERVICE_ROLE");
   });
