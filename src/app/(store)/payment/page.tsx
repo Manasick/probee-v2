@@ -26,7 +26,7 @@ export default async function ManualPaymentPage({
 }: {
   searchParams: Promise<{ order?: string }>;
 }) {
-  await requireAuthenticated("/payment");
+  const context = await requireAuthenticated("/payment");
 
   const params = await searchParams;
   const orderReference = params.order?.trim() ?? "";
@@ -50,6 +50,7 @@ export default async function ManualPaymentPage({
     supabase
       .from("orders")
       .select("id,order_reference,order_status,payment_status,total,currency")
+      .eq("user_id", context.user.id)
       .eq("order_reference", orderReference)
       .maybeSingle(),
     getActiveManualBankTransferSettings(),
