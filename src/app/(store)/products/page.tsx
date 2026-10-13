@@ -1,6 +1,5 @@
 import { Container } from "@/components/ui";
-import { CatalogControls } from "@/components/store/catalog-controls";
-import { ProductGrid } from "@/components/store/product-grid";
+import { CatalogBrowser } from "@/components/store/catalog-browser";
 import { getPublicCatalogCategories, getPublicCatalogProducts } from "@/lib/catalog/server";
 
 export const revalidate = 300;
@@ -31,12 +30,8 @@ export default async function ProductsPage() {
           </div>
         </div>
 
-        <div className="mt-10 probee-catalog-toolbar">
-          <CatalogControls categories={categories} />
-        </div>
-
         <div className="mt-10">
-          <ProductGrid products={products} />
+          <CatalogBrowser products={products} categories={categories} />
         </div>
       </Container>
     </section>
