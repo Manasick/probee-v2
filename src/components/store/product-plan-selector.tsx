@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button, Surface } from "@/components/ui";
 import { useCart } from "@/lib/cart/provider";
 import { formatDuration, formatPrice } from "@/lib/catalog/format";
@@ -257,18 +258,35 @@ export function ProductPlanSelector({
         </div>
       </Surface>
 
-      <Button
-        size="lg"
-        className="w-full sm:w-auto"
-        disabled={!isHydrated}
-        onClick={handleAddToCart}
-      >
-        {isHydrated
-          ? addedPlanId === selected.id
-            ? "Added to cart"
-            : "Add to cart"
-          : "Preparing cart…"}
-      </Button>
+      <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+        <Button
+          size="lg"
+          className="w-full sm:w-auto"
+          disabled={!isHydrated}
+          onClick={handleAddToCart}
+        >
+          {isHydrated
+            ? addedPlanId === selected.id
+              ? "Added to cart"
+              : "Add to cart"
+            : "Preparing cart…"}
+        </Button>
+        {addedPlanId === selected.id ? (
+          <div
+            className="flex flex-wrap items-center gap-3 text-sm"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="text-text-secondary">Your plan is in the cart.</span>
+            <Link
+              href="/cart"
+              className="probee-focus-ring inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--probee-gold-border)] px-4 py-2 font-semibold text-gold hover:bg-[var(--probee-gold-muted)]"
+            >
+              View cart <span className="ml-2" aria-hidden="true">→</span>
+            </Link>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
