@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { CatalogCategory, CatalogProduct } from "@/lib/catalog/types";
 import { ProductGrid } from "@/components/store/product-grid";
 
@@ -15,9 +15,6 @@ export function CatalogBrowser({ products, categories, initialQuery = "" }: Cata
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("relevance");
 
-  useEffect(() => {
-    setQuery(initialQuery);
-  }, [initialQuery]);
 
   const visibleProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();

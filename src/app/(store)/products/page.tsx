@@ -35,7 +35,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
 
         <div className="mt-10">
-          <CatalogBrowser products={products} categories={categories} initialQuery={q} />
+          <CatalogBrowser key={q} products={products} categories={categories} initialQuery={q} />
         </div>
       </Container>
     </section>
