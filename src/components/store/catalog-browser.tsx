@@ -7,10 +7,11 @@ import { ProductGrid } from "@/components/store/product-grid";
 interface CatalogBrowserProps {
   products: CatalogProduct[];
   categories: CatalogCategory[];
+  initialQuery?: string;
 }
 
-export function CatalogBrowser({ products, categories }: CatalogBrowserProps) {
-  const [query, setQuery] = useState("");
+export function CatalogBrowser({ products, categories, initialQuery = "" }: CatalogBrowserProps) {
+  const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("relevance");
 
