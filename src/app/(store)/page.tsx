@@ -5,6 +5,7 @@ import { ProductGrid } from "@/components/store/product-grid";
 import {
   getPublicCatalogCategories,
   getPublicCatalogFeaturedProducts,
+  getPublicCatalogProducts,
 } from "@/lib/catalog/server";
 
 const values = [
@@ -33,6 +34,10 @@ export default async function HomePage() {
     getPublicCatalogFeaturedProducts(6),
     getPublicCatalogCategories(),
   ]);
+  const hasFeaturedProducts = featuredProducts.length > 0;
+  const collectionProducts = hasFeaturedProducts
+    ? featuredProducts
+    : await getPublicCatalogProducts(6);
 
   return (
     <>
@@ -140,7 +145,9 @@ export default async function HomePage() {
         <Container>
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p className="probee-label">Featured collection</p>
+              <p className="probee-label">
+                {hasFeaturedProducts ? "Featured collection" : "Explore the collection"}
+              </p>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
                 Curated for the way you buy.
               </h2>
@@ -154,7 +161,7 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-10">
-            <ProductGrid products={featuredProducts} />
+            <ProductGrid products={collectionProducts} />
           </div>
         </Container>
       </section>
