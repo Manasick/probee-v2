@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BrandMark } from "@/components/ui";
 import { useCart } from "@/lib/cart/provider";
@@ -20,6 +21,8 @@ interface SiteHeaderProps {
 export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
   const { itemCount } = useCart();
 
   const accountLabel = accountEmail ? "Account" : "Sign in";
@@ -119,7 +122,17 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
         </div>
 
         {searchOpen ? (
-          <div className="probee-header-search">
+          <form
+            className="probee-header-search"
+            role="search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const query = searchQuery.trim();
+              if (!query) return;
+              setSearchOpen(false);
+              router.push(`/products?q=${encodeURIComponent(query)}`);
+            }}
+          >
             <label className="sr-only" htmlFor="global-search">Search ProBee</label>
             <div className="relative">
               <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-text-muted" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -129,11 +142,17 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
               <input
                 id="global-search"
                 type="search"
-                placeholder="Search the ProBee collection..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search products, features, categories..."
                 className="probee-search-input probee-focus-ring"
               />
+              <button type="submit" className="probee-primary-button probee-focus-ring absolute right-1.5 top-1/2 min-h-9 -translate-y-1/2 rounded-full px-4 text-xs font-semibold">
+                Search
+              </button>
             </div>
-          </div>
+            <p className="mt-2 px-3 text-xs text-text-muted">Search the catalog by product name, category or feature.</p>
+          </form>
         ) : null}
 
         {menuOpen ? (
