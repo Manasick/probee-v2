@@ -4,8 +4,12 @@ import { getPublicCatalogCategories, getPublicCatalogProducts } from "@/lib/cata
 
 export const revalidate = 300;
 
-export default async function ProductsPage() {
-  const [products, categories] = await Promise.all([
+interface ProductsPageProps {
+  searchParams: Promise<{ q?: string }>;
+}
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const [{ q = "" }, products, categories] = await Promise.all([searchParams,
     getPublicCatalogProducts(24),
     getPublicCatalogCategories(),
   ]);
@@ -31,7 +35,7 @@ export default async function ProductsPage() {
         </div>
 
         <div className="mt-10">
-          <CatalogBrowser products={products} categories={categories} />
+          <CatalogBrowser products={products} categories={categories} initialQuery={q} />
         </div>
       </Container>
     </section>
