@@ -88,7 +88,20 @@ export function CatalogBrowser({ products, categories }: CatalogBrowserProps) {
       </div>
 
       <div className="mt-6">
-        <ProductGrid products={visibleProducts} />
+        {visibleProducts.length > 0 ? (
+          <ProductGrid products={visibleProducts} />
+        ) : (
+          <div className="rounded-[var(--probee-radius-xl)] border border-[var(--probee-border-subtle)] bg-surface-1 px-6 py-14 text-center sm:px-10">
+            <span className="probee-label">No matches found</span>
+            <h2 className="mt-3 text-2xl font-semibold">Try a different search.</h2>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-text-muted">
+              We couldn’t find products for those filters. Clear your search or choose another category to explore the collection.
+            </p>
+            <button type="button" onClick={() => { setQuery(""); setCategory(""); setSort("relevance"); }} className="probee-primary-button probee-focus-ring mt-6 inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold">
+              Clear filters
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
