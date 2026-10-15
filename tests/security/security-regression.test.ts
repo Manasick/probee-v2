@@ -267,6 +267,7 @@ describe("manual payment proof upload boundary contracts", () => {
 describe("admin payment review authorization and state contracts", () => {
   const actions = read("src/app/admin/payments/actions.ts");
   const page = read("src/app/admin/payments/page.tsx");
+  const paymentMigration = read("supabase/migrations/20261006203000_manual_bank_transfer.sql");
   const hardenedMigration = read("supabase/migrations/20261006240000_security_rls_hardening.sql");
 
   it("requires staff authorization before either payment state-changing action", () => {
