@@ -262,3 +262,40 @@ describe("manual payment proof upload boundary contracts", () => {
     expect(storagePolicies).toContain("storage.foldername(name)");
   });
 });
+
+
+describe("admin payment review authorization and state contracts", () => {
+  const actions = read("src/app/admin/payments/actions.ts");
+  const page = read("src/app/admin/payments/page.tsx");
+  const hardenedMigration = read("supabase/migrations/20261006240000_security_rls_hardening.sql");
+
+  it("requires staff authorization before either payment state-changing action", () => {
+    const verifyStart = actions.indexOf("export async function markManualPaymentPaidAction");
+    const rejectStart = actions.indexOf("export async function rejectManualPaymentAction");
+    const settingsStart = actions.indexOf("export async function saveManualBankTransferSettingsAction");
+    expect(actions.slice(verifyStart, rejectStart)).toContain("await requireStaff()");
+    expect(actions.slice(rejectStart, settingsStart)).toContain("await requireStaff()");
+    expect(actions.slice(verifyStart, rejectStart)).toContain('supabase.rpc("verify_manual_bank_payment"');
+    expect(actions.slice(rejectStart, settingsStart)).toContain('supabase.rpc("reject_manual_bank_payment"');
+  });
+
+  it("only sends state-change notifications after the corresponding RPC succeeds", () => {
+    const verifyStart = actions.indexOf("export async function markManualPaymentPaidAction");
+    const rejectStart = actions.indexOf("export async function rejectManualPaymentAction");
+    const settingsStart = actions.indexOf("export async function saveManualBankTransferSettingsAction");
+    const verifyAction = actions.slice(verifyStart, rejectStart);
+    const rejectAction = actions.slice(rejectStart, settingsStart);
+    expect(verifyAction.indexOf("if (error)")).toBeLessThan(verifyAction.indexOf('event: "payment_paid"'));
+    expect(rejectAction.indexOf("if (error)")).toBeLessThan(rejectAction.indexOf('event: "payment_rejected"'));
+    expect(verifyAction).toContain('revalidatePath("/admin/payments")');
+    expect(rejectAction).toContain('revalidatePath("/admin/payments")');
+  });
+
+  it("exposes payment review actions only for pending payments", () => {
+    expect(page).toContain('{paymentStatus === "pending" ?');
+    expect(page).toContain("markManualPaymentPaidAction");
+    expect(page).toContain("rejectManualPaymentAction");
+    expect(hardenedMigration).toContain("payment:not_verifiable");
+    expect(hardenedMigration).toContain("payment:not_rejectable");
+  });
+});
