@@ -21,7 +21,7 @@ begin
     raise exception 'email:service_role_required';
   end if;
 
-  if p_status not in ('sent','failed') then
+  if p_status is null or p_status not in ('sent','failed') then
     raise exception 'email:status_invalid';
   end if;
 

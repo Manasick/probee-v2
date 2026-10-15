@@ -61,6 +61,7 @@ The current migration sequence is:
 10. `20261006222000_verified_product_reviews.sql`
 11. `20261006230000_full_admin_dashboard.sql`
 12. `20261006240000_security_rls_hardening.sql`
+13. `20261007009000_email_completion_service_role_only.sql`
 
 Do not reorder, delete, squash, or rewrite historical migrations.
 

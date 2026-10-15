@@ -129,6 +129,7 @@ describe("repository security regression contracts", () => {
     const emailMigration = read("supabase/migrations/20261007009000_email_completion_service_role_only.sql");
     expect(emailMigration).toContain("auth.jwt() ->> 'role'");
     expect(emailMigration).toContain("is distinct from 'service_role'");
+    expect(emailMigration).toContain("p_status is null or p_status not in");
     expect(emailMigration).toMatch(/revoke\s+all\s+on\s+function\s+public\.complete_transactional_email[\s\S]*?from public, anon, authenticated/i);
     expect(emailMigration).toMatch(/grant execute on function public\.complete_transactional_email[\s\S]*?to service_role/i);
   });
