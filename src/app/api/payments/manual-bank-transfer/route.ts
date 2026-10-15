@@ -225,6 +225,7 @@ export async function POST(request: Request) {
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select("id,order_reference")
+    .eq("user_id", user.id)
     .eq("order_reference", orderReference)
     .maybeSingle();
 
