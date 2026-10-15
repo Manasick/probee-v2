@@ -81,6 +81,14 @@ describe("auth regression contracts", () => {
     expect(confirm).toContain("safeNextPath");
   });
 
+  it("never builds production auth links with localhost when site URL is missing", () => {
+    const urls = read("src/lib/auth/urls.ts");
+
+    expect(urls).toContain('process.env.NODE_ENV === "production"');
+    expect(urls).toContain('return "https://probee-v2.vercel.app"');
+    expect(urls).toContain("process.env.VERCEL_URL?.trim()");
+  });
+
   it("keeps account/admin authentication server-side", () => {
     const adminLayout = read("src/app/admin/layout.tsx");
     const adminAuth = read("src/lib/admin/auth.ts");

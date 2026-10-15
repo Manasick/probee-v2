@@ -5,10 +5,17 @@ export function getSiteUrl(): string {
     return configured.endsWith("/") ? configured.slice(0, -1) : configured;
   }
 
-  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+  const vercelUrl =
+    process.env.NEXT_PUBLIC_VERCEL_URL?.trim() ??
+    process.env.VERCEL_URL?.trim();
 
   if (vercelUrl) {
     return "https://" + vercelUrl.replace(/\/$/, "");
+  }
+
+  // Never generate production authentication links pointing to localhost.
+  if (process.env.NODE_ENV === "production") {
+    return "https://probee-v2.vercel.app";
   }
 
   return "http://localhost:3000";
