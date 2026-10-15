@@ -296,6 +296,6 @@ describe("admin payment review authorization and state contracts", () => {
     expect(page).toContain("markManualPaymentPaidAction");
     expect(page).toContain("rejectManualPaymentAction");
     expect(hardenedMigration).toContain("payment:not_verifiable");
-    expect(hardenedMigration).toContain("payment:not_rejectable");
+    expect(paymentMigration).toContain("payment:not_rejectable");
   });
 });
