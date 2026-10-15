@@ -39,6 +39,7 @@ Server-only transactional email variables:
 - `EMAIL_FROM`
 - `EMAIL_REPLY_TO`
 - `EMAIL_API_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (required for secure transactional-email log completion; server-only)
 
 Only `NEXT_PUBLIC_*` values may be exposed to browser code. Never put Supabase service-role keys, database passwords, OAuth secrets, or email API keys in `NEXT_PUBLIC_*` variables.
 
@@ -117,6 +118,7 @@ When enabling a provider:
 - configure `EMAIL_FROM`
 - optionally configure `EMAIL_REPLY_TO`
 - store `EMAIL_API_KEY` only in the server environment
+- configure `SUPABASE_SERVICE_ROLE_KEY` in the server environment so only the server can complete transactional email log entries
 
 Email delivery is intentionally asynchronous from core checkout/payment request completion, and idempotency must remain enabled.
 

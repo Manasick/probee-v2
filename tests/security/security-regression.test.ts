@@ -116,8 +116,21 @@ describe("repository security regression contracts", () => {
     ].join("\n");
 
     expect(source).not.toContain("NEXT_PUBLIC_EMAIL_API_KEY");
-    expect(source).not.toMatch(/supabase_service_role_key/i);
     expect(source).not.toMatch(/NEXT_PUBLIC_SUPABASE_SERVICE_ROLE/i);
+    expect(read("src/lib/supabase/service.ts")).toContain(
+      "process.env.SUPABASE_SERVICE_ROLE_KEY",
+    );
+    expect(read("src/lib/supabase/service.ts")).toContain('import "server-only"');
+    expect(envExample).toContain("SUPABASE_SERVICE_ROLE_KEY=");
+    expect(envExample).not.toMatch(/NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY/i);
+  });
+
+  it("restricts transactional email completion to the service role", () => {
+    const emailMigration = read("supabase/migrations/20261007009000_email_completion_service_role_only.sql");
+    expect(emailMigration).toContain("auth.jwt() ->> 'role'");
+    expect(emailMigration).toContain("is distinct from 'service_role'");
+    expect(emailMigration).toMatch(/revoke\s+all\s+on\s+function\s+public\.complete_transactional_email[\s\S]*?from public, anon, authenticated/i);
+    expect(emailMigration).toMatch(/grant execute on function public\.complete_transactional_email[\s\S]*?to service_role/i);
   });
 
   it("preserves the digital entitlement security chain", () => {

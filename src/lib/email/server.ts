@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import type {
   RenderedTransactionalEmail,
   TransactionalEmailRequest,
@@ -65,6 +66,25 @@ function render(
   return renderDigitalEntitlementReady(data as never);
 }
 
+async function completeEmailLog(input: {
+  p_email_id: string;
+  p_status: "sent" | "failed";
+  p_provider: string | null;
+  p_provider_message_id: string | null;
+  p_error: string | null;
+}) {
+  try {
+    const serviceClient = createServiceClient();
+    return await serviceClient.rpc("complete_transactional_email", input);
+  } catch (error) {
+    console.error(
+      "Transactional email completion failed:",
+      error instanceof Error ? error.message : "unknown",
+    );
+    return { data: null, error: { message: "EMAIL_LOG_UPDATE_FAILED" } };
+  }
+}
+
 export async function sendTransactionalEmail(
   request: TransactionalEmailRequest,
 ): Promise<{ status: "sent" | "queued" | "failed" | "skipped"; reason?: string }> {
@@ -123,7 +143,7 @@ export async function sendTransactionalEmail(
   const providerStatus = getEmailProviderStatus();
 
   if (!providerStatus.configured) {
-    await supabase.rpc("complete_transactional_email", {
+    await completeEmailLog({
       p_email_id: emailId,
       p_status: "failed",
       p_provider: providerStatus.provider,
@@ -148,7 +168,7 @@ export async function sendTransactionalEmail(
     });
 
     if (!result.ok) {
-      await supabase.rpc("complete_transactional_email", {
+      await completeEmailLog({
         p_email_id: emailId,
         p_status: "failed",
         p_provider: result.provider,
@@ -158,9 +178,7 @@ export async function sendTransactionalEmail(
       return { status: "failed", reason: result.error };
     }
 
-    const { error: completeError } = await supabase.rpc(
-      "complete_transactional_email",
-      {
+    const { error: completeError } = await completeEmailLog({
         p_email_id: emailId,
         p_status: "sent",
         p_provider: result.provider,
@@ -175,7 +193,7 @@ export async function sendTransactionalEmail(
 
     return { status: "sent" };
   } catch {
-    await supabase.rpc("complete_transactional_email", {
+    await completeEmailLog({
       p_email_id: emailId,
       p_status: "failed",
       p_provider: providerStatus.provider,

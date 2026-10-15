@@ -39,6 +39,16 @@ describe("transactional email regression contracts", () => {
     expect(provider).toContain('"Idempotency-Key"');
   });
 
+  it("uses a privileged server-only client only for email log completion", () => {
+    const server = read("src/lib/email/server.ts");
+    const serviceClient = read("src/lib/supabase/service.ts");
+    expect(server).toContain("createServiceClient");
+    expect(server).toContain('serviceClient.rpc("complete_transactional_email", input)');
+    expect(serviceClient).toContain('import "server-only"');
+    expect(serviceClient).toContain("process.env.SUPABASE_SERVICE_ROLE_KEY");
+    expect(server).toContain('"claim_transactional_email"');
+  });
+
   it("keeps provider disabled behavior explicit", () => {
     const provider = read("src/lib/email/provider.ts");
     expect(provider).toContain('provider === "none"');
