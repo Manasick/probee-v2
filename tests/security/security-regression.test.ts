@@ -300,3 +300,43 @@ describe("admin payment review authorization and state contracts", () => {
     expect(paymentMigration).toContain("payment:not_rejectable");
   });
 });
+
+
+describe("admin payment settings and action input security contracts", () => {
+  const actions = read("src/app/admin/payments/actions.ts");
+
+  it("requires staff and explicit administrator authorization before saving bank settings", () => {
+    const start = actions.indexOf("export async function saveManualBankTransferSettingsAction");
+    const action = actions.slice(start);
+    expect(action.indexOf("await requireStaff()")).toBeGreaterThanOrEqual(0);
+    expect(action.indexOf('supabase.rpc(\n    "current_user_is_admin"')).toBeGreaterThan(action.indexOf("await requireStaff()"));
+    expect(action.indexOf("if (adminError || !isAdmin)")).toBeGreaterThan(action.indexOf('supabase.rpc(\n    "current_user_is_admin"'));
+    expect(action.indexOf(".from(\"payment_settings\")")).toBeGreaterThan(action.indexOf("if (adminError || !isAdmin)"));
+  });
+
+  it("does not allow form input to choose an arbitrary redirect destination", () => {
+    expect(actions).toContain('const safeBase = basePath === "/admin/settings" ? "/admin/settings" : "/admin/payments"');
+    expect(actions).toContain('const returnTo = returnToValue === "/admin/settings" ? "/admin/settings" : "/admin/payments"');
+  });
+
+  it("validates payment identifiers before invoking state-changing RPCs", () => {
+    expect(actions).toContain("const UUID_PATTERN =");
+    expect(actions).toContain("typeof value === \"string\" && UUID_PATTERN.test(value)");
+    const verifyStart = actions.indexOf("export async function markManualPaymentPaidAction");
+    const rejectStart = actions.indexOf("export async function rejectManualPaymentAction");
+    const verifyAction = actions.slice(verifyStart, rejectStart);
+    const rejectAction = actions.slice(rejectStart, actions.indexOf("export async function saveManualBankTransferSettingsAction"));
+    expect(verifyAction.indexOf("if (!paymentId)")).toBeGreaterThanOrEqual(0);
+    expect(verifyAction.indexOf("if (!paymentId)")).toBeLessThan(verifyAction.indexOf('supabase.rpc("verify_manual_bank_payment"'));
+    expect(rejectAction.indexOf("if (!paymentId)")).toBeGreaterThanOrEqual(0);
+    expect(rejectAction.indexOf("if (!paymentId)")).toBeLessThan(rejectAction.indexOf('supabase.rpc("reject_manual_bank_payment"'));
+  });
+
+  it("bounds administrator-controlled bank instructions and bank detail lengths", () => {
+    const start = actions.indexOf("export async function saveManualBankTransferSettingsAction");
+    const action = actions.slice(start);
+    expect(action).toContain("bankName.length > 120");
+    expect(action).toContain("branch.length > 120 || bankCodeSwift.length > 120");
+    expect(action).toContain("paymentInstructions.length > 5000");
+  });
+});
