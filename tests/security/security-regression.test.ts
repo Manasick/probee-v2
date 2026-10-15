@@ -183,3 +183,50 @@ describe("manual payment rejection and resubmission contracts", () => {
     expect(hardeningMigration).toContain("v_payment.currency <> v_order.currency");
   });
 });
+
+
+describe("manual payment transaction integrity contracts", () => {
+  const paymentMigration = read("supabase/migrations/20261006203000_manual_bank_transfer.sql");
+  const hardenedMigration = read("supabase/migrations/20261006240000_security_rls_hardening.sql");
+
+  it("serializes verification by locking the payment row and its order row", () => {
+    const verifyStart = hardenedMigration.indexOf("create or replace function public.verify_manual_bank_payment");
+    const verifyEnd = hardenedMigration.indexOf("revoke all on function public.verify_manual_bank_payment", verifyStart);
+    const verify = hardenedMigration.slice(verifyStart, verifyEnd);
+    expect(verify).toContain("for update");
+    expect(verify).toContain("where pay.id = p_payment_id");
+    expect(verify).toContain("where o.id = v_payment.order_id");
+    expect(verify).toContain("if v_payment.payment_status = 'paid' then");
+    expect(verify).toContain("return jsonb_build_object");
+  });
+
+  it("rejects verification after a payment is rejected and makes repeated rejection idempotent", () => {
+    const rejectStart = paymentMigration.indexOf("create or replace function public.reject_manual_bank_payment");
+    const rejectEnd = paymentMigration.indexOf("revoke all on function public.reject_manual_bank_payment", rejectStart);
+    const reject = paymentMigration.slice(rejectStart, rejectEnd);
+    expect(reject).toContain("for update");
+    expect(reject).toContain("if v_payment.payment_status = 'rejected' then");
+    expect(reject).toContain("if v_payment.payment_status <> 'pending' then");
+    expect(reject).toContain("raise exception 'payment:not_rejectable'");
+  });
+
+  it("locks order submission and reuses an existing pending proof instead of creating duplicate active payments", () => {
+    const submitStart = paymentMigration.indexOf("create or replace function public.submit_manual_bank_payment");
+    const submitEnd = paymentMigration.indexOf("revoke all on function public.submit_manual_bank_payment", submitStart);
+    const submit = paymentMigration.slice(submitStart, submitEnd);
+    expect(submit).toContain("for update");
+    expect(submit).toContain("pay.payment_status = 'pending'");
+    expect(submit).toContain("'createdProof', false");
+    expect(submit).toContain("payments_one_active_manual_transfer_idx");
+  });
+
+  it("checks the order's authoritative total and currency before marking payment as paid", () => {
+    const verifyStart = hardenedMigration.indexOf("create or replace function public.verify_manual_bank_payment");
+    const verifyEnd = hardenedMigration.indexOf("revoke all on function public.verify_manual_bank_payment", verifyStart);
+    const verify = hardenedMigration.slice(verifyStart, verifyEnd);
+    expect(verify).toContain("v_payment.amount <> v_order.total");
+    expect(verify).toContain("v_payment.currency <> v_order.currency");
+    expect(verify).toContain("set payment_status = 'paid'");
+    expect(verify).toContain("set payment_status = 'paid',");
+  });
+});
