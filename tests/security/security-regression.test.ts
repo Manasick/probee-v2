@@ -228,3 +228,37 @@ describe("manual payment transaction integrity contracts", () => {
     expect(verify).toContain("v_payment.currency <> v_order.currency");
   });
 });
+
+
+describe("manual payment proof upload boundary contracts", () => {
+  const paymentRoute = read("src/app/api/payments/manual-bank-transfer/route.ts");
+  const paymentMigration = read("supabase/migrations/20261006203000_manual_bank_transfer.sql");
+  const storagePolicies = read("supabase/migrations/20261007004000_step_26_payment_proof_storage_policies.sql");
+
+  it("authenticates the customer and resolves the order only within that customer's account", () => {
+    expect(paymentRoute).toContain("supabase.auth.getUser()");
+    expect(paymentRoute).toContain('.eq("user_id", user.id)');
+    expect(paymentRoute).toContain('.eq("order_reference", orderReference)');
+    expect(paymentRoute).toContain("That order could not be found for your account.");
+  });
+
+  it("validates proof file signatures and size before uploading to private storage", () => {
+    expect(paymentRoute).toContain("signatureMatches(bytes)");
+    expect(paymentRoute).toContain("PAYMENT_PROOF_MAX_BYTES");
+    expect(paymentRoute).toContain("upsert: false");
+    expect(paymentMigration).toContain("'payment-proofs'");
+    expect(paymentMigration).toContain("public = false");
+  });
+
+  it("removes orphaned uploads when the database submission fails or detects a duplicate", () => {
+    expect(paymentRoute).toContain("if (error || !data || !isRecord(data))");
+    expect(paymentRoute).toContain("remove([finalPath])");
+    expect(paymentRoute).toContain("if (data.createdProof === false)");
+  });
+
+  it("limits customer storage access to their own order proof paths", () => {
+    expect(storagePolicies).toContain("payment-proofs");
+    expect(storagePolicies).toContain("auth.uid()");
+    expect(storagePolicies).toContain("storage.foldername(name)");
+  });
+});
