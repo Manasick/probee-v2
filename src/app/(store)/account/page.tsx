@@ -94,6 +94,45 @@ export default async function AccountPage({
           <AccountNav />
         </div>
 
+        <div className="probee-account-quick-actions mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {[
+            {
+              href: "/account/orders",
+              eyebrow: "Orders & payments",
+              title: "Track your purchases",
+              description: "Review order progress, payment status and order details.",
+              icon: "↗",
+            },
+            {
+              href: "/account/digital-products",
+              eyebrow: "Your library",
+              title: "Digital products",
+              description: "Open eligible digital products and available deliveries.",
+              icon: "↓",
+            },
+            {
+              href: "/products",
+              eyebrow: "Discover ProBee",
+              title: "Explore the collection",
+              description: "Browse products, compare plans and find your next option.",
+              icon: "→",
+            },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="probee-account-quick-action probee-focus-ring group flex min-h-36 items-start justify-between gap-4 rounded-[var(--probee-radius-lg)] border border-[var(--probee-border-subtle)] bg-surface-1 p-5 sm:p-6"
+            >
+              <div className="min-w-0">
+                <p className="probee-label">{item.eyebrow}</p>
+                <h2 className="mt-2 text-lg font-semibold transition-colors group-hover:text-gold">{item.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-text-muted">{item.description}</p>
+              </div>
+              <span aria-hidden="true" className="probee-account-quick-action-icon grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--probee-border-default)] text-gold">{item.icon}</span>
+            </Link>
+          ))}
+        </div>
+
         <Surface className="mt-6 border-[var(--probee-border-default)] bg-surface-1 p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
