@@ -79,6 +79,41 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
+          <Surface className="mt-7 p-5 sm:p-6">
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+              <div>
+                <p className="probee-label">Quick actions</p>
+                <h2 className="mt-2 text-xl font-semibold">Manage your store</h2>
+              </div>
+              <p className="text-sm text-text-muted">Jump straight to a key workflow.</p>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {[
+                { title: "Manage products", description: "Edit product details, plans and media.", href: "/admin/products", mark: "P" },
+                { title: "Review orders", description: "Find purchases and inspect order status.", href: "/admin/orders", mark: "O" },
+                { title: "Verify bank transfers", description: "Review manual payment submissions.", href: "/admin/payments?status=pending", mark: "$" },
+                { title: "Organise categories", description: "Keep the product catalogue structured.", href: "/admin/categories", mark: "C" },
+                { title: "Digital delivery", description: "Review customer access and fulfilment.", href: "/admin/digital-delivery", mark: "D" },
+                { title: "Customer accounts", description: "Find customer records and account details.", href: "/admin/customers", mark: "U" },
+              ].map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className="probee-focus-ring group flex min-h-[6.5rem] items-start gap-3 rounded-xl border border-[var(--probee-border-subtle)] bg-surface-2 p-4 transition-colors hover:border-[var(--probee-border-default)] hover:bg-surface-3 motion-reduce:transition-none"
+                >
+                  <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--probee-border-default)] bg-surface-1 text-sm font-semibold text-gold">{action.mark}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-2 font-semibold">
+                      {action.title}
+                      <span aria-hidden="true" className="text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-gold motion-reduce:transition-none">↗</span>
+                    </span>
+                    <span className="mt-1 block text-sm leading-6 text-text-muted">{action.description}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Surface>
+
           <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {cards.map(([label, value]) => (
               <Surface key={label} className="p-5">
