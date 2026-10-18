@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "@/components/ui";
 import { useCart } from "@/lib/cart/provider";
@@ -23,6 +23,7 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
   const router = useRouter();
   const { itemCount } = useCart();
 
@@ -57,7 +58,10 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
             href="/"
             className="probee-focus-ring rounded-xl"
             aria-label="ProBee home"
-            onClick={() => setMenuOpen(false)}
+            onClick={() => {
+              setMenuOpen(false);
+              setSearchOpen(false);
+            }}
           >
             <BrandMark />
           </Link>
@@ -67,7 +71,18 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
               <Link
                 key={item.href}
                 href={item.href}
-                className="probee-header-link probee-focus-ring rounded-full px-4 py-2.5"
+                aria-current={
+                  (item.href === "/" && pathname === "/") ||
+                  (item.href === "/products" && pathname.startsWith("/products"))
+                    ? "page"
+                    : undefined
+                }
+                className={`probee-header-link probee-focus-ring rounded-full px-4 py-2.5 ${
+                  (item.href === "/" && pathname === "/") ||
+                  (item.href === "/products" && pathname.startsWith("/products"))
+                    ? "probee-header-link-active"
+                    : ""
+                }`}
               >
                 {item.label}
               </Link>
@@ -183,12 +198,32 @@ export function SiteHeader({ accountEmail = null, emailVerified = false }: SiteH
 
         {menuOpen ? (
           <nav id="mobile-navigation" className="probee-mobile-menu lg:hidden" aria-label="Mobile navigation">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className="probee-mobile-link probee-focus-ring">
-                {item.label}
-              </Link>
-            ))}
-            <Link href={accountEmail ? "/account" : "/login"} onClick={() => setMenuOpen(false)} className="probee-mobile-link probee-focus-ring">
+            {navItems.map((item) => {
+              const isActive =
+                (item.href === "/" && pathname === "/") ||
+                (item.href === "/products" && pathname.startsWith("/products"));
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setSearchOpen(false);
+                  }}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`probee-mobile-link probee-focus-ring ${isActive ? "probee-mobile-link-active" : ""}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+            <Link
+              href={accountEmail ? "/account" : "/login"}
+              onClick={() => setMenuOpen(false)}
+              aria-current={pathname.startsWith("/account") ? "page" : undefined}
+              className={`probee-mobile-link probee-focus-ring ${pathname.startsWith("/account") ? "probee-mobile-link-active" : ""}`}
+            >
               {accountLabel}
               {accountEmail && !emailVerified ? <span className="probee-account-pill">Activate</span> : null}
             </Link>
