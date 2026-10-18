@@ -74,14 +74,14 @@ export default async function AdminSettingsPage({
               </p>
             </div>
 
-            <form action={saveManualBankTransferSettingsAction} className="mt-6 grid gap-5">
+            <form action={saveManualBankTransferSettingsAction} className="probee-admin-settings-form mt-6 grid gap-5">
               <input type="hidden" name="returnTo" value="/admin/settings" />
-              <label className="flex min-h-11 items-center justify-between gap-4 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-4">
+              <label className="probee-admin-settings-toggle flex min-h-12 items-center justify-between gap-4 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-4 py-2">
                 <span>
                   <span className="block text-sm font-semibold">Manual bank transfer enabled</span>
                   <span className="block text-xs text-text-muted">Allow customers to submit payment references and proofs.</span>
                 </span>
-                <input type="checkbox" name="enabled" defaultChecked={Boolean(settings?.enabled)} className="size-5 accent-[var(--probee-gold)]" />
+                <input type="checkbox" name="enabled" defaultChecked={Boolean(settings?.enabled)} className="size-5 shrink-0 accent-[var(--probee-gold)]" />
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -94,17 +94,17 @@ export default async function AdminSettingsPage({
                 ].map(([name, label, defaultValue]) => (
                   <label key={name} className="grid gap-2 text-sm font-medium text-text-secondary sm:last:col-span-2">
                     {label}
-                    <input name={name} defaultValue={defaultValue} maxLength={120} className="min-h-11 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary" />
+                    <input name={name} defaultValue={defaultValue} maxLength={120} className="probee-admin-form-control min-h-11 w-full min-w-0 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary" />
                   </label>
                 ))}
               </div>
 
               <label className="grid gap-2 text-sm font-medium text-text-secondary">
                 Payment instructions
-                <textarea name="paymentInstructions" defaultValue={settings?.payment_instructions ?? ""} maxLength={5000} rows={7} className="rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3.5 py-3 text-sm leading-6 text-text-primary" />
+                <textarea name="paymentInstructions" defaultValue={settings?.payment_instructions ?? ""} maxLength={5000} rows={7} className="probee-admin-form-control min-h-36 w-full min-w-0 resize-y rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3.5 py-3 text-sm leading-6 text-text-primary" />
               </label>
 
-              <button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg bg-gold px-5 text-sm font-semibold text-text-inverse sm:w-fit">
+              <button type="submit" className="probee-focus-ring min-h-12 w-full rounded-lg bg-gold px-5 text-sm font-semibold text-text-inverse sm:w-fit">
                 Save payment settings
               </button>
             </form>
