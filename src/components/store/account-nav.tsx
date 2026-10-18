@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const items = [
   { label: "Overview", href: "/account", match: (path: string) => path === "/account" },
   { label: "Orders", href: "/account/orders", match: (path: string) => path.startsWith("/account/orders") },
+  { label: "Transactions", href: "/account/transactions", match: (path: string) => path.startsWith("/account/transactions") },
   { label: "Reviews", href: "/account/reviews", match: (path: string) => path.startsWith("/account/reviews") },
   { label: "Digital products", href: "/account/digital-products", match: (path: string) => path.startsWith("/account/digital-products") },
   { label: "Profile", href: "/account#profile", match: () => false },
