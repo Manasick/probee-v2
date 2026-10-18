@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { BrandMark } from "@/components/ui";
 import { signOutAdminAction } from "@/app/admin/actions";
@@ -23,6 +26,8 @@ export function AdminShell({
   userEmail: string;
   isAdmin: boolean;
 }>) {
+  const pathname = usePathname();
+  const isCurrent = (href: string) => pathname === href || (href !== "/admin" && pathname.startsWith(href + "/")) || (href === "/admin/payments" && pathname === "/admin/payments");
   const navigation = isAdmin
     ? [...baseNavigation, { label: "Settings", href: "/admin/settings" }]
     : baseNavigation;
@@ -39,7 +44,7 @@ export function AdminShell({
             <div className="probee-admin-mobile-menu">
               <nav className="grid gap-1" aria-label="Admin navigation">
                 {navigation.map((item) => (
-                  <Link key={item.href} href={item.href} className="probee-focus-ring probee-admin-nav-link">
+                  <Link key={item.href} href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined} className={`probee-focus-ring probee-admin-nav-link${isCurrent(item.href) ? " is-active" : ""}`}>
                     <span>{item.label}</span><span aria-hidden="true">›</span>
                   </Link>
                 ))}
