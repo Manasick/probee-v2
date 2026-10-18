@@ -95,6 +95,7 @@ export default async function AdminDashboardPage() {
                 { title: "Organise categories", description: "Keep the product catalogue structured.", href: "/admin/categories", mark: "C" },
                 { title: "Digital delivery", description: "Review customer access and fulfilment.", href: "/admin/digital-delivery", mark: "D" },
                 { title: "Customer accounts", description: "Find customer records and account details.", href: "/admin/customers", mark: "U" },
+                { title: "Store settings", description: "Manage the existing manual bank-transfer details and instructions.", href: "/admin/settings", mark: "S" },
               ].map((action) => (
                 <Link
                   key={action.href}
