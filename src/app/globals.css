@@ -295,3 +295,14 @@ button:not(:disabled),a.probee-focus-ring{touch-action:manipulation}
     transform: translateX(-130%);
   }
 }
+
+
+/* Homepage quick-navigation cards */
+.probee-home-shortcut{display:flex;min-height:9rem;align-items:center;gap:1rem;border:1px solid var(--probee-border-subtle);border-radius:1.2rem;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));padding:1.25rem;box-shadow:0 12px 34px rgba(0,0,0,.12);transition:transform .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease}
+.probee-home-shortcut:hover{transform:translateY(-3px);border-color:var(--probee-gold-border);background:linear-gradient(145deg,rgba(226,184,77,.065),rgba(255,255,255,.018));box-shadow:0 20px 44px rgba(0,0,0,.22),0 0 28px rgba(226,184,77,.04)}
+.probee-home-shortcut-icon{display:grid;flex:0 0 auto;width:2.9rem;height:2.9rem;place-items:center;border:1px solid var(--probee-gold-border);border-radius:.9rem;background:var(--probee-gold-muted);color:var(--probee-gold-bright);transition:transform .25s ease,background .25s ease}
+.probee-home-shortcut:hover .probee-home-shortcut-icon{transform:translateY(-1px) scale(1.04);background:rgba(226,184,77,.14)}
+.probee-home-shortcut-arrow{display:grid;flex:0 0 auto;width:2rem;height:2rem;place-items:center;border:1px solid var(--probee-border-default);border-radius:999px;color:var(--probee-text-secondary);transition:transform .25s ease,border-color .25s ease,color .25s ease}
+.probee-home-shortcut:hover .probee-home-shortcut-arrow{transform:translate(2px,-2px);border-color:var(--probee-gold-border);color:var(--probee-gold-bright)}
+@media (max-width:640px){.probee-home-shortcut{min-height:7.5rem;padding:1rem;gap:.85rem}.probee-home-shortcut-icon{width:2.6rem;height:2.6rem}}
+@media (prefers-reduced-motion:reduce){.probee-home-shortcut,.probee-home-shortcut-icon,.probee-home-shortcut-arrow{transition:none}.probee-home-shortcut:hover,.probee-home-shortcut:hover .probee-home-shortcut-icon,.probee-home-shortcut:hover .probee-home-shortcut-arrow{transform:none}}
