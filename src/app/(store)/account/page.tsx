@@ -111,6 +111,13 @@ export default async function AccountPage({
               icon: "↓",
             },
             {
+              href: "/account/transactions",
+              eyebrow: "Payment activity",
+              title: "Transactions & payments",
+              description: "Check payment records, amounts and transfer references.",
+              icon: "↔",
+            },
+            {
               href: "/products",
               eyebrow: "Discover ProBee",
               title: "Explore the collection",
