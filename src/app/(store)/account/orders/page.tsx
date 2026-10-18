@@ -174,7 +174,7 @@ export default async function AccountOrdersPage({
           <AccountNav />
         </div>
 
-        <Surface className="mt-8 p-5 sm:p-6">
+        <Surface className="probee-orders-filter mt-8 p-5 sm:p-6">
           <form
             method="get"
             className="grid gap-4 lg:grid-cols-[1fr_220px_auto]"
@@ -240,12 +240,21 @@ export default async function AccountOrdersPage({
             </p>
           </Surface>
         ) : orders && orders.length > 0 ? (
-          <div className="mt-6 grid gap-4">
+          <>
+          <div className="probee-orders-result-summary mt-6 flex flex-col gap-2 rounded-[var(--probee-radius-md)] border border-[var(--probee-border-subtle)] bg-surface-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between" aria-live="polite">
+            <p className="text-sm font-semibold text-text-primary">
+              {search || status ? "Matching orders" : "Your order history"}
+            </p>
+            <p className="text-xs text-text-muted">
+              Showing {from + 1}–{Math.min(from + (orders?.length ?? 0), totalCount)} of {totalCount} {totalCount === 1 ? "order" : "orders"}
+            </p>
+          </div>
+          <div className="probee-orders-list mt-4 grid gap-4">
             {orders.map((order) => {
               const itemSummary = itemMap.get(order.id);
 
               return (
-                <Surface key={order.id} tone="interactive" className="p-5 sm:p-6">
+                <Surface key={order.id} tone="interactive" className="probee-order-history-card p-5 sm:p-6">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-xs uppercase tracking-[0.12em] text-text-muted">
@@ -300,6 +309,7 @@ export default async function AccountOrdersPage({
               );
             })}
           </div>
+          </>
         ) : (
           <div className="mt-6">
             <EmptyState
