@@ -256,6 +256,14 @@ a {
 .probee-admin-nav-link.is-active{border-color:rgba(198,164,92,.32);background:linear-gradient(90deg,rgba(198,164,92,.13),rgba(198,164,92,.035));color:var(--probee-gold);box-shadow:inset 2px 0 0 var(--probee-gold)}
 .probee-admin-nav-link.is-active:hover{transform:none;border-color:rgba(198,164,92,.42);background:linear-gradient(90deg,rgba(198,164,92,.17),rgba(198,164,92,.05))}
 .probee-admin-table-scroll{max-width:100%;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:rgba(198,164,92,.48) rgba(255,255,255,.035)}
+
+.probee-admin-payment-card{min-width:0;overflow-wrap:anywhere}
+.probee-admin-payment-card>div{min-width:0}
+.probee-admin-payment-details>div{min-width:0;overflow-wrap:anywhere}
+.probee-admin-payment-actions form{min-width:0;flex:1 1 0}
+.probee-admin-payment-actions button{white-space:normal}
+.probee-admin-payment-filters{min-width:0}
+@media(max-width:640px){.probee-admin-payment-card{padding:1rem}.probee-admin-payment-actions form,.probee-admin-payment-actions button{width:100%}.probee-admin-payment-filters input,.probee-admin-payment-filters select{width:100%;min-width:0;max-width:100%;font-size:16px}}
 .probee-admin-settings-form{min-width:0}
 .probee-admin-settings-form>div,.probee-admin-settings-form label{min-width:0}
 .probee-admin-form-control{max-width:100%;color:var(--probee-text-primary);outline:none;transition:border-color .18s ease,box-shadow .18s ease}
