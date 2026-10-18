@@ -173,7 +173,7 @@ export default async function AdminProductsPage({
         </Surface>
 
         <div className="mt-8 hidden overflow-hidden rounded-[var(--probee-radius-lg)] border border-[var(--probee-border-subtle)] bg-surface-1 md:block">
-          <div className="overflow-x-auto">
+          <div role="region" aria-label="Products table; scroll horizontally to see all columns" tabIndex={0} className="probee-admin-table-scroll overflow-x-auto">
             <table className="min-w-[900px] w-full border-collapse text-left text-sm">
               <thead className="border-b border-[var(--probee-border-subtle)] bg-surface-2 text-xs uppercase tracking-[0.08em] text-text-muted">
                 <tr>
