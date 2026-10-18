@@ -338,3 +338,11 @@ button:not(:disabled),a.probee-focus-ring{touch-action:manipulation}
 .probee-orders-page select,.probee-orders-page input[type="search"]{min-height:2.9rem}
 @media(max-width:640px){.probee-order-history-card{padding:1rem}.probee-orders-result-summary{gap:.35rem}}
 @media(prefers-reduced-motion:reduce){.probee-order-history-card{transition:none}.probee-order-history-card:hover{transform:none}}
+
+
+/* Customer transaction history */
+.probee-transaction-summary{background:linear-gradient(115deg,rgba(185,160,106,.07),rgba(255,255,255,.012))}
+.probee-transaction-card{border-color:var(--probee-border-subtle);background:linear-gradient(145deg,rgba(255,255,255,.028),rgba(255,255,255,.008));transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.probee-transaction-card:hover{transform:translateY(-2px);border-color:var(--probee-gold-border);box-shadow:0 16px 40px rgba(0,0,0,.2)}
+@media(max-width:640px){.probee-transaction-card{padding:1rem}}
+@media(prefers-reduced-motion:reduce){.probee-transaction-card{transition:none}.probee-transaction-card:hover{transform:none}}
