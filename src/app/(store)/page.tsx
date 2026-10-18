@@ -141,6 +141,67 @@ export default async function HomePage() {
         </Container>
       </section>
 
+      <section className="probee-section !py-12 sm:!py-16" aria-labelledby="probee-shortcuts-title">
+        <Container>
+          <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="probee-label">Your next step</p>
+              <h2 id="probee-shortcuts-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Everything you need, one click away.
+              </h2>
+            </div>
+            <p className="max-w-xl text-sm leading-6 text-text-muted">
+              Browse the catalog, discover a category, or return to your customer workspace.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Link href="/products" className="probee-home-shortcut probee-focus-ring group">
+              <span className="probee-home-shortcut-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <rect x="3.5" y="4" width="7" height="7" rx="1.5" />
+                  <rect x="13.5" y="4" width="7" height="7" rx="1.5" />
+                  <rect x="3.5" y="13" width="7" height="7" rx="1.5" />
+                  <rect x="13.5" y="13" width="7" height="7" rx="1.5" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-semibold">Browse products</span>
+                <span className="mt-1 block text-sm leading-6 text-text-muted">Compare available packages and plans.</span>
+              </span>
+              <span className="probee-home-shortcut-arrow" aria-hidden="true">↗</span>
+            </Link>
+
+            <Link href="/#categories" className="probee-home-shortcut probee-focus-ring group">
+              <span className="probee-home-shortcut-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path d="M4 5.5h6v6H4zM14 5.5h6v6h-6zM4 15.5h6v4H4zM14 15.5h6v4h-6z" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-semibold">Explore categories</span>
+                <span className="mt-1 block text-sm leading-6 text-text-muted">Find the right area of the ProBee catalog.</span>
+              </span>
+              <span className="probee-home-shortcut-arrow" aria-hidden="true">↗</span>
+            </Link>
+
+            <Link href="/account/orders" className="probee-home-shortcut probee-focus-ring group">
+              <span className="probee-home-shortcut-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path d="M7 3.5h7l4 4V20a.8.8 0 0 1-.8.8H7a.8.8 0 0 1-.8-.8V4.3a.8.8 0 0 1 .8-.8Z" />
+                  <path d="M14 3.8v4h4M9 12h6M9 15.5h6" strokeLinecap="round" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-semibold">Orders & transactions</span>
+                <span className="mt-1 block text-sm leading-6 text-text-muted">Review order progress and payment status.</span>
+              </span>
+              <span className="probee-home-shortcut-arrow" aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </Container>
+      </section>
+
       <section className="probee-section">
         <Container>
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
