@@ -256,6 +256,16 @@ a {
 .probee-admin-nav-link.is-active{border-color:rgba(198,164,92,.32);background:linear-gradient(90deg,rgba(198,164,92,.13),rgba(198,164,92,.035));color:var(--probee-gold);box-shadow:inset 2px 0 0 var(--probee-gold)}
 .probee-admin-nav-link.is-active:hover{transform:none;border-color:rgba(198,164,92,.42);background:linear-gradient(90deg,rgba(198,164,92,.17),rgba(198,164,92,.05))}
 .probee-admin-table-scroll{max-width:100%;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:rgba(198,164,92,.48) rgba(255,255,255,.035)}
+.probee-admin-settings-form{min-width:0}
+.probee-admin-settings-form>div,.probee-admin-settings-form label{min-width:0}
+.probee-admin-form-control{max-width:100%;color:var(--probee-text-primary);outline:none;transition:border-color .18s ease,box-shadow .18s ease}
+.probee-admin-form-control:focus-visible{border-color:var(--probee-gold);box-shadow:0 0 0 3px rgba(198,164,92,.16)}
+.probee-admin-form-control::placeholder{color:var(--probee-text-muted)}
+.probee-admin-settings-toggle{cursor:pointer}
+.probee-admin-settings-toggle input{min-width:1.25rem;min-height:1.25rem}
+@media(max-width:640px){.probee-admin-settings-form{gap:1.1rem}.probee-admin-settings-form .probee-admin-form-control{font-size:16px}.probee-admin-settings-toggle{align-items:flex-start;padding:.9rem 1rem}.probee-admin-settings-form textarea{min-height:10rem}}
+@media(prefers-reduced-motion:reduce){.probee-admin-form-control{transition:none}}
+
 .probee-admin-table-scroll:focus-visible{outline:2px solid var(--probee-gold);outline-offset:3px}
 .probee-admin-table-scroll::-webkit-scrollbar{height:.55rem}
 .probee-admin-table-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,.035);border-radius:999px}
