@@ -90,7 +90,7 @@ export default async function AccountTransactionsPage() {
               {payments.map((payment) => {
                 const reference = orderReferenceById.get(payment.order_id);
                 return (
-                  <Surface key={payment.id} tone="interactive" className="probee-transaction-card p-5 sm:p-6">
+                  <Surface key={payment.id} tone="interactive" className="probee-transaction-card p-4 sm:p-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <p className="probee-label">Payment record</p>
