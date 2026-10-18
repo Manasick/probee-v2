@@ -381,3 +381,12 @@ button:not(:disabled),a.probee-focus-ring{touch-action:manipulation}
 .probee-account-order-details dl dd{min-width:0;overflow-wrap:anywhere}
 .probee-account-order-details a{max-width:100%;overflow-wrap:anywhere}
 @media(max-width:640px){.probee-account-order-details .probee-account-order-panel{padding:1rem}.probee-account-order-details .probee-account-order-line-total{align-self:flex-start;text-align:left}.probee-account-order-details dl>div{gap:.75rem}.probee-account-order-details dl dd{max-width:65%}}
+
+.probee-transactions-page{min-width:0}
+.probee-transactions-page .probee-transaction-card{min-width:0;overflow-wrap:anywhere}
+.probee-transactions-page .probee-transaction-card>div{min-width:0}
+.probee-transactions-page .probee-transaction-card a{max-width:100%;overflow-wrap:anywhere}
+.probee-transactions-page .probee-transaction-details>div{min-width:0;overflow-wrap:anywhere}
+.probee-transactions-page .probee-transaction-details p{overflow-wrap:anywhere}
+.probee-transactions-page .probee-transaction-summary{min-width:0}
+@media(max-width:640px){.probee-transactions-page .probee-transaction-card{padding:1rem}.probee-transactions-page .probee-transaction-details{gap:1rem}.probee-transactions-page .probee-transaction-summary{padding:1rem}}
