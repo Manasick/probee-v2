@@ -1,3 +1,3 @@
 # Update diagnostic
 
-Initial harmless test content.
+Updated harmless test content; the file is temporary and exists only on the diagnostic branch.
