@@ -67,6 +67,12 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               <p className="mt-1 text-base font-semibold text-gold">{price ?? "View options"}</p>
             </div>
           </div>
+          <div className="probee-product-card-footer mt-5 flex items-center justify-between gap-3 border-t border-[var(--probee-border-subtle)] pt-4">
+            <span className="text-xs font-medium text-text-muted">Explore product details</span>
+            <span className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--probee-gold-bright)]">
+              View plans <span aria-hidden="true">→</span>
+            </span>
+          </div>
         </div>
       </Surface>
     </Link>
