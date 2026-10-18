@@ -92,7 +92,7 @@ export default async function AdminPaymentsPage({
         ) : null}
 
         <Surface className="mt-8 p-4 sm:p-5">
-          <form className="grid gap-3 md:grid-cols-[1fr_220px_auto]">
+          <form className="probee-admin-payment-filters grid gap-3 md:grid-cols-[1fr_220px_auto]">
             <label className="grid gap-2 text-sm font-medium text-text-secondary">
               Search
               <input name="search" defaultValue={search} placeholder="Order, customer or payment reference" className="min-h-11 rounded-lg border border-[var(--probee-border-default)] bg-surface-2 px-3.5 text-sm text-text-primary" />
@@ -116,19 +116,19 @@ export default async function AdminPaymentsPage({
             const paymentStatus = String(payment.paymentStatus ?? "unknown");
 
             return (
-              <Surface key={String(payment.id)} className="p-5 sm:p-6">
+              <Surface key={String(payment.id)} className="probee-admin-payment-card p-4 sm:p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
                     <p className="probee-label">Order {String(payment.orderReference ?? "Unknown")}</p>
                     <h2 className="mt-2 text-lg font-semibold">{String(payment.customerName || payment.customerEmail || "Customer")}</h2>
                     <p className="mt-1 text-sm text-text-muted">{String(payment.customerEmail || "No email")}</p>
                   </div>
-                  <AdminStatus label={paymentStatus} tone={tone(paymentStatus)} />
+                  <div className="shrink-0 self-start"><AdminStatus label={paymentStatus} tone={tone(paymentStatus)} /></div>
                 </div>
 
-                <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="probee-admin-payment-details mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <div><p className="text-xs text-text-muted">Amount</p><p className="mt-1 font-semibold text-gold">{money(payment.amount, String(payment.currency ?? "USD"))}</p></div>
-                  <div><p className="text-xs text-text-muted">Payment reference</p><p className="mt-1 text-sm">{String(payment.paymentReference || "Not supplied")}</p></div>
+                  <div className="min-w-0"><p className="text-xs text-text-muted">Payment reference</p><p className="mt-1 break-words text-sm">{String(payment.paymentReference || "Not supplied")}</p></div>
                   <div><p className="text-xs text-text-muted">Submitted</p><p className="mt-1 text-sm">{date(payment.createdAt)}</p></div>
                   <div><p className="text-xs text-text-muted">Verified</p><p className="mt-1 text-sm">{date(payment.verifiedAt)}</p></div>
                   <div><p className="text-xs text-text-muted">Order status</p><p className="mt-1 text-sm">{String(payment.orderStatus ?? "Unknown")}</p></div>
@@ -147,12 +147,12 @@ export default async function AdminPaymentsPage({
                 )}
 
                 {paymentStatus === "pending" ? (
-                  <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  <div className="probee-admin-payment-actions mt-5 flex flex-col gap-3 sm:flex-row">
                     <AdminConfirmForm action={markManualPaymentPaidAction} fields={{ paymentId: String(payment.id) }} confirmation="Mark this manual payment as paid? The secure payment workflow will validate the payment and amount before changing state.">
-                      <button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse sm:w-auto">Mark as paid</button>
+                      <button type="submit" className="probee-focus-ring min-h-12 w-full rounded-lg bg-gold px-4 text-sm font-semibold text-text-inverse sm:w-auto">Mark as paid</button>
                     </AdminConfirmForm>
                     <AdminConfirmForm action={rejectManualPaymentAction} fields={{ paymentId: String(payment.id) }} confirmation="Reject this payment proof? This will keep the order unpaid.">
-                      <button type="submit" className="probee-focus-ring min-h-11 w-full rounded-lg border border-red-300/20 bg-red-300/5 px-4 text-sm font-semibold text-red-100 sm:w-auto">Reject payment</button>
+                      <button type="submit" className="probee-focus-ring min-h-12 w-full rounded-lg border border-red-300/20 bg-red-300/5 px-4 text-sm font-semibold text-red-100 sm:w-auto">Reject payment</button>
                     </AdminConfirmForm>
                   </div>
                 ) : null}
