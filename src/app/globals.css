@@ -373,3 +373,11 @@ button:not(:disabled),a.probee-focus-ring{touch-action:manipulation}
 .probee-transaction-card:hover{transform:translateY(-2px);border-color:var(--probee-gold-border);box-shadow:0 16px 40px rgba(0,0,0,.2)}
 @media(max-width:640px){.probee-transaction-card{padding:1rem}}
 @media(prefers-reduced-motion:reduce){.probee-transaction-card{transition:none}.probee-transaction-card:hover{transform:none}}
+
+.probee-account-order-details{min-width:0}
+.probee-account-order-details .probee-account-order-panel{min-width:0}
+.probee-account-order-details .probee-account-order-item{min-width:0;overflow-wrap:anywhere}
+.probee-account-order-details .probee-account-order-line-total{flex:0 1 auto;min-width:0;overflow-wrap:anywhere;text-align:right}
+.probee-account-order-details dl dd{min-width:0;overflow-wrap:anywhere}
+.probee-account-order-details a{max-width:100%;overflow-wrap:anywhere}
+@media(max-width:640px){.probee-account-order-details .probee-account-order-panel{padding:1rem}.probee-account-order-details .probee-account-order-line-total{align-self:flex-start;text-align:left}.probee-account-order-details dl>div{gap:.75rem}.probee-account-order-details dl dd{max-width:65%}}
