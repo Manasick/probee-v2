@@ -110,7 +110,7 @@ export default async function AccountTransactionsPage() {
                       </div>
                     </div>
 
-                    <div className="mt-5 grid gap-4 border-t border-[var(--probee-border-subtle)] pt-5 sm:grid-cols-2">
+                    <div className="probee-transaction-details mt-5 grid gap-4 border-t border-[var(--probee-border-subtle)] pt-5 sm:grid-cols-2">
                       <div>
                         <p className="text-xs uppercase tracking-[0.1em] text-text-muted">Amount</p>
                         <p className="mt-1 text-xl font-semibold text-text-primary">{formatCurrency(payment.amount, payment.currency)}</p>
