@@ -328,3 +328,13 @@ button:not(:disabled),a.probee-focus-ring{touch-action:manipulation}
 .probee-account-quick-action-icon{transition:transform .25s ease,border-color .25s ease,background .25s ease}
 .probee-account-quick-action:hover .probee-account-quick-action-icon{transform:translate(2px,-2px);border-color:var(--probee-gold-border);background:var(--probee-gold-muted)}
 @media (prefers-reduced-motion:reduce){.probee-account-quick-action,.probee-account-quick-action-icon{transition:none}.probee-account-quick-action:hover,.probee-account-quick-action:hover .probee-account-quick-action-icon{transform:none}}
+
+
+/* Customer order history and payment status clarity */
+.probee-orders-filter{border-color:var(--probee-border-subtle);background:linear-gradient(145deg,rgba(255,255,255,.028),rgba(255,255,255,.008))}
+.probee-orders-result-summary{background:linear-gradient(110deg,rgba(185,160,106,.055),rgba(255,255,255,.012))}
+.probee-order-history-card{border-color:var(--probee-border-subtle);background:linear-gradient(145deg,rgba(255,255,255,.028),rgba(255,255,255,.008));transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.probee-order-history-card:hover{transform:translateY(-2px);border-color:var(--probee-gold-border);box-shadow:0 16px 40px rgba(0,0,0,.2)}
+.probee-orders-page select,.probee-orders-page input[type="search"]{min-height:2.9rem}
+@media(max-width:640px){.probee-order-history-card{padding:1rem}.probee-orders-result-summary{gap:.35rem}}
+@media(prefers-reduced-motion:reduce){.probee-order-history-card{transition:none}.probee-order-history-card:hover{transform:none}}
