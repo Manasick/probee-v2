@@ -62,7 +62,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         </form>
       </Surface>
 
-      <div className="mt-8 overflow-x-auto rounded-xl border border-[var(--probee-border-subtle)] bg-surface-1">
+      <div role="region" aria-label="Orders table; scroll horizontally to see all columns" tabIndex={0} className="probee-admin-table-scroll mt-8 overflow-x-auto rounded-xl border border-[var(--probee-border-subtle)] bg-surface-1">
         <table className="min-w-[1050px] w-full text-left text-sm">
           <thead className="border-b border-[var(--probee-border-subtle)] bg-surface-2 text-xs uppercase tracking-[0.08em] text-text-muted"><tr><th className="px-4 py-3">Order</th><th className="px-4 py-3">Customer</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Items</th><th className="px-4 py-3">Subtotal</th><th className="px-4 py-3">Discount</th><th className="px-4 py-3">Total</th><th className="px-4 py-3">Currency</th><th className="px-4 py-3">Payment</th><th className="px-4 py-3">Order</th><th className="px-4 py-3"></th></tr></thead>
           <tbody>{result.items.map(order=>(
