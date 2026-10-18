@@ -86,7 +86,7 @@ export default async function AccountOrderDetailsPage({
 
   if (orderError || !order) {
     return (
-      <section className="probee-section">
+      <section className="probee-section probee-account-order-details">
         <Container>
           <div className="max-w-3xl">
             <p className="probee-label">Order</p>
