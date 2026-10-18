@@ -248,7 +248,7 @@ export default async function AccountOrderDetailsPage({
                     return (
                       <div
                         key={item.id}
-                        className="rounded-[var(--probee-radius-md)] border border-[var(--probee-border-subtle)] bg-surface-2 p-4"
+                        className="probee-account-order-item rounded-[var(--probee-radius-md)] border border-[var(--probee-border-subtle)] bg-surface-2 p-4"
                       >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0">
@@ -265,7 +265,7 @@ export default async function AccountOrderDetailsPage({
                             </p>
                           </div>
 
-                          <p className="shrink-0 text-lg font-semibold text-gold">
+                          <p className="probee-account-order-line-total text-lg font-semibold text-gold">
                             {formatCurrency(item.line_total, order.currency)}
                           </p>
                         </div>
