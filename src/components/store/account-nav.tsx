@@ -19,7 +19,7 @@ export function AccountNav() {
   return (
     <nav
       aria-label="Account navigation"
-      className="probee-account-nav grid gap-2 sm:flex sm:flex-wrap"
+      className="probee-account-nav flex min-w-0 gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:overflow-visible sm:pb-0"
     >
       {items.map((item) => {
         const active = item.match(pathname);
@@ -29,7 +29,7 @@ export function AccountNav() {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`probee-focus-ring rounded-[var(--probee-radius-md)] border px-4 py-3 text-sm font-semibold transition-colors ${
+            className={`probee-focus-ring shrink-0 whitespace-nowrap rounded-[var(--probee-radius-md)] border px-4 py-3 text-sm font-semibold transition-colors ${
               active
                 ? "probee-account-nav-active border-[var(--probee-gold-border)] bg-[var(--probee-gold-muted)] text-gold"
                 : "border-[var(--probee-border-subtle)] bg-surface-2 text-text-secondary hover:border-[var(--probee-border-default)] hover:bg-surface-3 hover:text-text-primary"
