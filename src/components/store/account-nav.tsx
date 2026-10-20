@@ -19,7 +19,7 @@ export function AccountNav() {
   return (
     <nav
       aria-label="Account navigation"
-      className="probee-account-nav grid gap-2 sm:flex sm:flex-wrap"
+      className="probee-account-nav grid grid-cols-2 gap-2 sm:flex sm:flex-wrap"
     >
       {items.map((item) => {
         const active = item.match(pathname);
